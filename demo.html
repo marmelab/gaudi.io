@@ -1,0 +1,51 @@
+---
+layout: default
+title: "Gaudi use case: Build a NodeJS server with a Redis storage"
+description: "Build a NodeJS server with a Redis storage"
+body: use-case
+---
+
+<div class="container page">
+
+    <h1>Gaudi Use Case: Build a NodeJS Server With a Redis Storage</h1>
+
+    <p>
+        This example describes how to start a NodeJS server using a redis server with Gaudi.<br />
+        Gaudi can run pre-defined component like <code>NodeJS</code> or use <a href="http://index.docker.io">Docker's index</a>.<br />
+        Here we'll use the <code>dockerfile/redis</code> image from the index and the <code>NodeJS</code> component from Gaudi.
+    </p>
+
+    <h2>Create the Configuration File</h2>
+
+    <p>Create a <code>.gaudi.yml</code> file in a new folder:
+        <script src="https://gist.github.com/manuquentin/377146a6b3590e563082.js"></script>
+    </p>
+
+    <p>It defines 2 applications:</p>
+
+    <h4>Server</h4>
+
+    <p>
+        This application is the Nodejs server. It's linked to redis, mounts the current folder in the <code>/app</code> directory of the container.<br />
+        Finally, the <code>after_script</code> runs npm and the server.
+    </p>
+
+    <h4>Redis</h4>
+    <p>Here we tell to Gaudi to pull the <code>dockerfile/redis</code> from the index and listen on the port <code>6379</code>.</p>
+
+    <h2>Installing Dependencies</h2>
+
+    <p>To install the server dependencies, we have to create a <code>package.json</code> file:</p>
+    <script src="https://gist.github.com/manuquentin/e46278041a4b7fd96e82.js"></script>
+
+    <h2>Creating the Server</h2>
+
+    <p>Docker will expose a <code>REDIS_PORT_6379_TCP_ADDR</code> environment variable with the IP of the redis container.</p>
+    <script src="https://gist.github.com/manuquentin/2da2fccf9d20094b00e9.js"></script>
+
+    <h2>Starting the Architecture</h2>
+
+    <p>We can now run Gaudi and check the result :</p>
+    <script src="https://gist.github.com/manuquentin/ecfe248312d3b0980a64.js"></script>
+
+</div>

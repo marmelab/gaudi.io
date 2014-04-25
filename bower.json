@@ -1,0 +1,14 @@
+{
+  "name": "Gaudi",
+  "version": "0.0.1",
+  "homepage": "??",
+  "authors": [
+    "Emmanuel Quentin <emmanuel.quentin@gmail.com>",
+    "Daphné Popin <daphne.popin@gmail.com>"
+  ],
+  "description": "Gaudi's presentation page",
+  "private": true,
+  "dependencies": {
+    "bootstrap": "3.0.*"
+  }
+}

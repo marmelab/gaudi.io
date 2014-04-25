@@ -1,0 +1,97 @@
+---
+layout: default
+title: "How-to install a Symfony CMF application with Gaudi"
+description: ""
+body: how-to-symfony-cmf
+---
+
+<div class="container page">
+
+    <h1>HOW TO: Run a Symfony CMF Application</h1>
+
+    <p><a href="http://cmf.symfony.com/">Symfony CMF</a> is a new Content Management Framework based on Symfony 2.
+        This project won the Symfony Open-Source Application Award 2013, and is used at marmelab for a project with more than 900K documents.</p>
+
+    <p>Symfony CMF requires several third-party components to be installed: Jackrabbit, MySQL, Apache, and of course PHP. <a href="https://github.com/marmelab/gaudi">Gaudi</a> simplifies the build of linked components, so it will be hepful to setup and run a Symfony CMF project. Gaudi runs a <a href="docker.io">Docker</a> container for each required components defined in a simple configuration file. It was instroduced in a <a href="http://marmelab.overblog.com/2014/01/introducing-gaudi-an-architect-for-multi-component-applications.html">previous post</a>.</p>
+
+
+    <h1 id="creatingtheconfigurationfile">Creating The Configuration File</h1>
+
+    <p>The <code>.gaudi.yml</code> file lists all components required to run the <a href="https://github.com/symfony-cmf/cmf-sandbox">Symfony CMF Sandbox</a> :</p>
+
+    <script src="https://gist.github.com/manuquentin/f55073f3b9d4ee325c45.js"></script>
+
+    <h2 id="jackrabbit">Jackrabbit</h2>
+
+    <p>You may notice that it is similar to the configuration file of the <a href="https://github.com/marmelab/gaudi/wiki/HOW-TO:-Run-a-Symfony-Application">Gaudi Symfony tutorial</a>.</p>
+
+    <p>Instead of starting a MySQL server, we start <a href="http://jackrabbit.apache.org/">Jackrabbit</a>, and make it listen on port <code>8082</code>.</p>
+    <p>
+        As Docker does not keep data when a container is removed, we need to mount a folder from the host machine into <code>/opt/jackrabbit/jackrabbit</code> (where Jackrabbit stores its documents).</p>
+
+    <h2 id="phpfpm">Php-fpm</h2>
+
+    <p>The Jackrabbit server is linked to the <code>app</code> application, which runs a <code>PHP-FPM</code> server. During the build of <code>app</code>, we tell Gaudi to:</p>
+    <ul>
+        <li>install <code>php5-gd</code> &amp; <code>php5-intl</code> required by Symfony CMF</li>
+        <li>mount the current folder to <code>/var/www</code></li>
+        <li>listen to the port <code>9000</code></li>
+    </ul>
+
+    <h2 id="apache">Apache</h2>
+
+    <p>The Apache server is called <code>app</code>, and is configured to:</p>
+    <ul>
+        <li>mount the current folder to <code>/var/www</code></li>
+        <li>listen on the <code>8080</code> port</li>
+        <li>redirect all requests to the port 80 of the container</li>
+        <li>redirect all Fast-CGI requests to the <code>app</code> application</li>
+        <li>define the DocumentRoot to <code>/var/www/web</code> (required by Symfony) </li>
+        <li>enable <code>mod_rewrite</code></li>
+    </ul>
+
+    <h1 id="startingallcomponents">Starting All Components</h1>
+
+    <p>To start all the 3 components (Apache2, PHP-FPM &amp; Jackrabbit), just run :</p>
+
+    <script src="https://gist.github.com/manuquentin/b85238421a3d900220b2.js"></script>
+
+    <p>Wich will output something like :</p>
+
+    <script src="https://gist.github.com/manuquentin/cfb35ef9e5f1a5a31ddd.js"></script>
+
+    <h1 id="installingsymfonycmf">Installing Symfony Cmf</h1>
+
+    <p>Attach the <code>app</code> container to run some commands :</p>
+
+    <script src="https://gist.github.com/manuquentin/3dda340bc0d9de7dcce6.js"></script>
+
+
+    <h2 id="createparametersphp">Configuring Symfony CMF</h2>
+
+    <p>Docker injects some environment variables for linked containers.
+        In this example, the injected variables in the <code>app</code> container are:</p>
+
+    <script src="https://gist.github.com/manuquentin/12c981822587117f2081.js"></script>
+
+    <p>We need to inject some on them in the Symfony configuration by creating a new <code>app/config/parameters.php</code> file:</p>
+
+    <script src="https://gist.github.com/manuquentin/eb8ef8e9c1f21e3827a9.js"></script>
+
+    <p>Include this file in the <code>app/config/config.yml</code> after <code>- { resource: phpcr.yml }</code> :</p>
+
+    <script src="https://gist.github.com/manuquentin/aafe1d546af6a29e8baa.js"></script>
+
+    <p>Install all dependencies :</p>
+
+    <script src="https://gist.github.com/manuquentin/5c9d8627ac9bc24a3c9f.js"></script>
+
+    <p>Finaly create the Jackrabbit workspace :</p>
+
+    <script src="https://gist.github.com/manuquentin/78a9f5ef45aad9dd0089.js"></script>
+
+    <p>You are now go to go and check the result at <code>http://localhost:8080/hello</code>.</p>
+
+    <p>Feel free to give me some feedback or bug report in <a href="https://github.com/marmelab/gaudi">Gaudi's project</a>.</p>
+
+</div>

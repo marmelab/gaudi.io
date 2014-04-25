@@ -1,0 +1,77 @@
+---
+layout: default
+title: "Installation"
+description: ""
+body: installation
+---
+
+<div class="container page">
+
+    <h1>Installation</h1>
+
+    <p>Gaudi uses <a target="_blank" href="http://www.docker.io">Docker</a> to start all applications in a specific container.
+        It builds Docker files and specific configuration files from different templates.<br>
+        All templates are listed in <a target="_blank" href="https://github.com/marmelab/gaudi/tree/master/templates">
+        the <code>templates/</code> folder</a>, one for each application type.
+    </p>
+
+    <h3>Requirements</h3>
+
+    <p>
+        Gaudi requires <a target="_blank" href="http://golang.org/doc/install">Go 1.2</a> and
+        <a target="_blank" href="https://www.docker.io/gettingstarted/">Docker</a>.
+    </p>
+
+    <img src="/assets/img/golang-docker.png">
+
+    <h3>Install Gaudi</h3>
+
+    <script src="https://gist.github.com/DaphDaOne/9f9b7f4777e349f93d16.js"></script>
+
+    <p>Check that your <code>PATH</code> includes <code>$GOPATH/bin</code>:</p>
+
+    <script src="https://gist.github.com/DaphDaOne/081d133f01f4d44a7dbc.js"></script>
+
+    <p>The <code>gaudi</code> application starts containers with Docker's commands which
+        <a target="_blank" href="http://docs.docker.io/en/latest/use/basics/#dockergroup">requires sudo privileges</a>.<br>
+        Make sure that the <code>GOPATH</code> and <code>GOROOT</code> environment variables are correctly
+        set for the <code>root</code> user (or other user with root privileges).
+    </p>
+
+    <h3>Run</h3>
+
+    <p>To start gaudi, run <code>gaudi</code> in the current folder.</p>
+
+    <p><strong>List of options:</strong></p>
+
+    <table>
+        <tr>
+            <td><code>--config=""</code></td>
+            <td>Specify the location of the configuration file</td>
+        </tr>
+        <tr>
+            <td><code>--debug</code></td>
+            <td>Display some useful information</td>
+        </tr>
+        <tr>
+            <td><code>--no-cache</code></td>
+            <td>Do not use docker's cache when building containers (builds will be slower)</td>
+        </tr>
+        <tr>
+            <td><code>rebuild</code></td>
+            <td>Force all containers to rebuild (useful when you change your configuration)</td>
+        </tr>
+        <tr>
+            <td><code>stop</code></td>
+            <td>Stop all applications</td>
+        </tr>
+        <tr>
+            <td><code>check</code></td>
+            <td>Check if all applications are running</td>
+        </tr>
+        <tr>
+            <td><code>run binaryName [arguments]</code></td>
+            <td>Run a specific binary</td>
+        </tr>
+    </table>
+</div>
