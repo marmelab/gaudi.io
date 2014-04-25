@@ -1,10 +1,11 @@
 {
   "name": "gaudi",
   "version": "0.0.1",
-  "homepage": "??",
+  "homepage": "http://gaudi.io",
   "authors": [
-    "Emmanuel Quentin <emmanuel.quentin@gmail.com>",
-    "Daphné Popin <daphne.popin@gmail.com>"
+    "Daphné Popin <daphne.popin@gmail.com>",
+    "François Zaninotto <francois@marmelab.com>",
+    "Emmanuel Quentin <manu.quentin@gmail.com>"
   ],
   "description": "gaudi's presentation page",
   "private": true,
