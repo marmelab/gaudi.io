@@ -146,9 +146,24 @@ table tr td:first-of-type {
 .listing .first {
     margin-right: 30px;
 }
-@media (min-width: 768px) {
-    .listing .col-sm-6 {
-        width: 48%;
+
+.listing .col-sm-6 {
+    width: 48%;
+}
+
+
+@media all and (max-device-width: 480px) {
+    .container>.navbar-header {
+        margin-left: 0;
+    }
+
+    .marketing h2 {
+        padding: 0 5px 10px 5px;
+        text-align: center;
+    }
+
+    .marketing p {
+        padding: 0 5px 10px 5px;
     }
 }
 
