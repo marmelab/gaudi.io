@@ -1,6 +1,6 @@
 ---
 layout: default
-title: "How-to install a Symfony CMF application with Gaudi"
+title: "How-to install a Symfony CMF application with gaudi"
 description: ""
 body: how-to-symfony-cmf
 ---
@@ -12,7 +12,7 @@ body: how-to-symfony-cmf
     <p><a href="http://cmf.symfony.com/">Symfony CMF</a> is a new Content Management Framework based on Symfony 2.
         This project won the Symfony Open-Source Application Award 2013, and is used at marmelab for a project with more than 900K documents.</p>
 
-    <p>Symfony CMF requires several third-party components to be installed: Jackrabbit, MySQL, Apache, and of course PHP. <a href="https://github.com/marmelab/gaudi">Gaudi</a> simplifies the build of linked components, so it will be hepful to setup and run a Symfony CMF project. Gaudi runs a <a href="docker.io">Docker</a> container for each required components defined in a simple configuration file. It was instroduced in a <a href="http://marmelab.overblog.com/2014/01/introducing-gaudi-an-architect-for-multi-component-applications.html">previous post</a>.</p>
+    <p>Symfony CMF requires several third-party components to be installed: Jackrabbit, MySQL, Apache, and of course PHP. <a href="https://github.com/marmelab/gaudi">gaudi</a> simplifies the build of linked components, so it will be hepful to setup and run a Symfony CMF project. gaudi runs a <a href="docker.io">Docker</a> container for each required components defined in a simple configuration file. It was instroduced in a <a href="http://marmelab.overblog.com/2014/01/introducing-gaudi-an-architect-for-multi-component-applications.html">previous post</a>.</p>
 
 
     <h1 id="creatingtheconfigurationfile">Creating The Configuration File</h1>
@@ -23,7 +23,7 @@ body: how-to-symfony-cmf
 
     <h2 id="jackrabbit">Jackrabbit</h2>
 
-    <p>You may notice that it is similar to the configuration file of the <a href="https://github.com/marmelab/gaudi/wiki/HOW-TO:-Run-a-Symfony-Application">Gaudi Symfony tutorial</a>.</p>
+    <p>You may notice that it is similar to the configuration file of the <a href="https://github.com/marmelab/gaudi/wiki/HOW-TO:-Run-a-Symfony-Application">gaudi Symfony tutorial</a>.</p>
 
     <p>Instead of starting a MySQL server, we start <a href="http://jackrabbit.apache.org/">Jackrabbit</a>, and make it listen on port <code>8082</code>.</p>
     <p>
@@ -31,7 +31,7 @@ body: how-to-symfony-cmf
 
     <h2 id="phpfpm">Php-fpm</h2>
 
-    <p>The Jackrabbit server is linked to the <code>app</code> application, which runs a <code>PHP-FPM</code> server. During the build of <code>app</code>, we tell Gaudi to:</p>
+    <p>The Jackrabbit server is linked to the <code>app</code> application, which runs a <code>PHP-FPM</code> server. During the build of <code>app</code>, we tell gaudi to:</p>
     <ul>
         <li>install <code>php5-gd</code> &amp; <code>php5-intl</code> required by Symfony CMF</li>
         <li>mount the current folder to <code>/var/www</code></li>
@@ -92,6 +92,6 @@ body: how-to-symfony-cmf
 
     <p>You are now go to go and check the result at <code>http://localhost:8080/hello</code>.</p>
 
-    <p>Feel free to give me some feedback or bug report in <a href="https://github.com/marmelab/gaudi">Gaudi's project</a>.</p>
+    <p>Feel free to give me some feedback or bug report in <a href="https://github.com/marmelab/gaudi">gaudi's project</a>.</p>
 
 </div>
