@@ -1,0 +1,6 @@
+Version: 12.04
+Component: contrib
+Origin: gaudi.io
+Label: apt repository
+Architecture: source
+Description: Gaudi debian package repo

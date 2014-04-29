@@ -1,0 +1,6 @@
+Version: 12.04
+Component: non-free
+Origin: gaudi.io
+Label: apt repository
+Architecture: amd64
+Description: Gaudi debian package repo

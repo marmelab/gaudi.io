@@ -1,0 +1,15 @@
+Package: gaudi
+Maintainer: Emmanuel QUENTIN <emmanuel@marmelab.com>
+Version: 0.1.0
+Architecture: amd64
+Depends: golang
+Homepage: https://github.com/marmelab/gaudi
+Priority: Extra
+Section: main
+Filename: pool/main/g/gaudi/gaudi_0.1.0_amd64.deb
+Size: 2204734
+SHA256: 2e491a4d306bef5dc7310394c523be59b2ad23add66f085f1b49e14af851f13d
+SHA1: b9fff5bf2e44e2f8ee15218ea8b04b03327348c5
+MD5sum: 62f4839c3f7df9fa388f36c08d827758
+Description: gaudi automates the setup of isolated and decoupled dev environments.
+
