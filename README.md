@@ -1,4 +1,4 @@
 gaudi.io
 ========
 
-Gaudi.io website source. Check the `gh-pages` branch for what your are seeking.
+Gaudi.io website source. Check the [`gh-pages`](https://github.com/marmelab/gaudi.io/tree/gh-pages) branch for what your are seeking.
