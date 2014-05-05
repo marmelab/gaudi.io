@@ -1,0 +1,70 @@
+{
+    "apache": {
+        "name": "Apache",
+        "logo": "./img/logos/apache.jpg",
+        "fields": {
+            "ports" : {"label": "Ports :", "type": "text", "default": "80: 80", "multiple": true},
+            "volumes" : {"label": "Volumes :", "type": "text", "default": ".: /var/www", "multiple": true}
+        },
+        "customFields": {
+            "fastCgi": {"label": "Forward fast CGI to :", "type": "link"},
+            "documentRoot": {"label": "DocumentRoot :", "type": "text", "default": "/var/www"},
+            "modules": {"label": "Modules :", "type": "choices", "choices": ["rewrite", "alias", "auth_basic", "auth_digest", "ssl"]}
+        }
+    },
+    "nginx": {
+        "name": "Nginx",
+        "logo": "./img/logos/nginx.jpg",
+        "fields": {
+            "ports" : {"label": "Ports :", "type": "text", "default": "80: 80"},
+            "volumes" : {"label": "Volumes :", "type": "text", "default": ".: /var/www"}
+        },
+        "customFields": {
+            "backends": {"label": "Backends :", "type": "links"}
+        }
+    },
+    "varnish": {
+        "name": "Varnish",
+        "logo": "./img/logos/varnish.png",
+        "fields": {
+            "ports" : {"label": "Ports :", "type": "text", "default": "80: 80", "multiple": true},
+            "volumes" : {"label": "Volumes :", "type": "text", "default": ".: /var/www", "multiple": true}
+        },
+        "customFields": {
+            "backends": {"label": "Backends :", "type": "links"}
+        }
+    },
+    "mysql": {
+        "name": "MySQL",
+        "logo": "./img/logos/mysql.png",
+        "fields": {
+            "ports" : {"label": "Ports :", "type": "text", "default": "3306: 3306", "multiple": true},
+            "volumes" : {"label": "Volumes :", "type": "text", "default": ".gaudi/mysql: /var/lib/mysql", "multiple": true},
+            "after_script" : {"label": "After script :", "type": "text", "default": ""}
+        },
+        "customFields": {
+        }
+    },
+    "php": {
+        "name": "PHP",
+        "logo": "./img/logos/php.png"
+    },
+    "php-fpm": {
+        "name": "PHP-FPM",
+        "logo": "./img/logos/php.png",
+        "fields": {
+            "ports" : {"label": "Ports :", "type": "text", "default": "9000: 9000", "multiple": true},
+            "volumes" : {"label": "Volumes :", "type": "text", "default": ".: /var/www", "multiple": true},
+            "modules": {"label": "Modules :", "type": "choices", "choices": ["gd", "apc", "zip"]}
+        }
+    },
+    "nodejs": {
+        "name": "Node.js",
+        "logo": "./img/logos/nodejs.png",
+        "fields": {
+            "ports" : {"label": "Ports :", "type": "text", "default": "80: 80", "multiple": true},
+            "volumes" : {"label": "Volumes :", "type": "text", "default": ".: /app", "multiple": true},
+            "after_script" : {"label": "After script :", "type": "text", "default": "node /app/server.js"}
+        }
+    }
+}

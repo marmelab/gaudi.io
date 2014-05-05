@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en" ng-app="gaudiConfigBuilder">
+<head>
+    <meta charset="utf-8">
+    <title>Gaudi: Build Your Project's Architecture File</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="css/bootstrap-theme.min.css"/>
+    <link rel="stylesheet" href="css/jquery-ui-1.10.4.custom.min.css"/>
+    <link rel="stylesheet" href="css/joint.nojquery.min.css"/>
+    <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="page-header">
+            <h1>Gaudi: Build Your Project's Architecture File</h1>
+        </div>
+
+        <a href="https://github.com/marmelab/gaudi" class="fork"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"></a>
+
+        <div class="row content">
+            <section class="col-md-3 sidebar">
+                <ul class="components list-group row" ng-controller="componentsController">
+                    <li class="list-group-item component col-md-6 clearfix" ng-repeat="(type, component) in availableComponents" data-type="{{ type }}" on-finish-render="onDisplayComponents">
+                        <div class="element">
+                            <img ng-src="{{ component.logo }}" alt="{{ component.name }}" />
+                            <span class="name">{{ component.name }}</span>
+                        </div>
+                    </li>
+
+                    <li class="list-group-item component col-md-6 fixed">
+                        <div class="element">
+                            And more to come ...
+                        </div>
+                    </li>
+                </ul>
+
+                <div id="result" ng-controller="resultController">
+                    <pre>{{ getFileResult() }}</pre>
+
+                    <p class="col-md-8">Download the result and try your architecture with <a href="https://github.com/marmelab/gaudi" target="_blank">Gaudi</a></p>
+                    <button type="button" class="generate btn btn-primary btn-lg pull-right" ng-click="generateFile()">Download</button>
+                </div>
+            </section>
+
+            <section id="board" class="col-md-9" ng-controller="boardController">
+                <div id="graphContainer"></div>
+            </section>
+        </div>
+    </div>
+
+    <script type="text/ng-template" id="edit-attribute.html">
+        <label for="{{ name }}" class="col-sm-3 control-label">{{ field.label }}</label>
+
+        <div class="col-sm-9">
+            <input id="{{ name }}" class="form-control" ng-switch-when="text" type="text" ng-model="values[fieldsType][name]" ng-init="values[fieldsType][name]=field.default" />
+
+            <select id="{{ name }}" class="form-control" ng-switch-when="link" ng-model="values[fieldsType][name]" ng-options="option as option for option in componentNames"></select>
+
+            <select id="{{ name }}" class="form-control" ng-switch-when="links" ng-model="values[fieldsType][name]" multiple ng-multiple="true" ng-options="option as option for option in componentNames"></select>
+
+            <select id="{{ name }}" class="form-control" ng-switch-when="choice" ng-model="values[fieldsType][name]" ng-options="option as option for option in field.choices"></select>
+
+            <select id="{{ name }}" class="form-control" ng-switch-when="choices" ng-model="values[fieldsType][name]" multiple ng-multiple="{{ field.multiple }}" ng-options="option as option for option in field.choices"></select>
+        </div>
+    </script>
+
+    <script type="text/ng-template" id="edit-component.html">
+        <div class="modal-body">
+            <form name="detailForm" class="form-horizontal" role="form">
+                <div class="form-group">
+                    <label for="name" class="col-sm-3 control-label">Name: </label>
+                    <div class="col-sm-9">
+                        <input type="text" id="name" name="name" class="form-control" ng-model="values.name" ng-pattern="/^[aA-zZ0-9]+$/" />
+                        <span class="error" ng-show="!detailForm.name.$valid">Please use alphanumeric characters</span>
+                    </div>
+                </div>
+
+                <div class="{{fieldsType}}" ng-repeat="fieldsType in ['standard', 'custom']">
+                    <div class="form-field form-group" ng-include="'edit-attribute.html'" ng-repeat="(name, field) in fields[fieldsType]"  ng-switch="field.type"></div>
+                </div>
+            </form>
+
+            <div class="modal-footer">
+                <button class="btn btn-primary" ng-click="ok(detailForm)" ng-class="{disabled: !detailForm.$valid}">OK</button>
+                <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+            </div>
+        </div>
+    </script>
+
+    <script type="text/javascript" src="js/lib/angular.min.js"></script>
+    <script type="text/javascript" src="js/lib/jquery-2.1.0.min.js"></script>
+    <script type="text/javascript" src="js/lib/jquery-ui-1.10.4.custom.min.js"></script>
+    <script type="text/javascript" src="js/lib/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/lib/ui-bootstrap-custom-0.10.0.min.js"></script>
+    <script type="text/javascript" src="js/lib/ui-bootstrap-custom-tpls-0.10.0.min.js"></script>
+    <script type="text/javascript" src="js/lib/joint.nojquery.min.js"></script>
+    <script type="text/javascript" src="js/lib/yaml/YamlDumper.js"></script>
+    <script type="text/javascript" src="js/lib/yaml/YamlInline.js"></script>
+    <script type="text/javascript" src="js/lib/yaml/YamlEscaper.js"></script>
+
+    <script type="text/javascript" src="js/gaudi-graph-element.js"></script>
+    <script type="text/javascript" src="js/gaudi-config-builder.js"></script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+html, body, .container-fluid, .sidebar {
+    height:100%;
+}
+
+.page-header {
+    margin: 0 0 10px 0;
+    padding: 15px;
+    color: #fff;
+    position: absolute;
+    left: 0;
+    width: 100%;
+
+    background-color: #49ae80;
+    background-image: linear-gradient(to bottom,#4cb183 0,#49ae80 100%);
+    border-bottom: 1px solid #c1c1c1;
+}
+
+.page-header h1 {
+    margin-top: 5px;
+    height: 30px;
+}
+
+.fork img {
+    z-index: 2;
+}
+.content {
+    margin-top: 90px;
+    height: 85%;
+}
+
+#result {
+    height: 55%;
+}
+
+#result pre {
+    height: 80%;
+    overflow-y: scroll;
+}
+
+#board {
+    position: relative;
+    overflow: hidden;
+}
+
+#board svg {
+    border: 1px solid #eee;
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAHUlEQVQYV2NkYGAwBuKzQIwXMBJSAJMfVUidcAQAnUQBC6jEGBUAAAAASUVORK5CYII=);
+}
+
+#board .component {
+    position: absolute;
+    margin-left: 15px;
+    padding: 5px 15px 10px 15px;
+    background-color: #fff;
+    border: 1px solid #eee;
+    border-radius: 5px;
+
+    /* Make sure events are propagated to the JointJS element so, e.g. dragging works.*/
+    pointer-events: none;
+    -webkit-user-select: none;
+}
+
+#board .component .element {
+    height: 70px;
+}
+
+#board .component .tools {
+    position: absolute;
+    top: 68px;
+    width: 216px;
+    left: 0;
+    border-top: 1px solid #c1c1c1;
+    height: 22px;
+    border-radius: 0 0 5px 5px;
+    background-color: #eee;
+}
+
+#board .component button, #board .component .create-link, #board .component .edit {
+    /* Enable interacting with inputs only. */
+    pointer-events: auto;
+}
+
+#board .component .name {
+    padding-left: 5px;
+}
+
+#board .component .edit {
+    position: absolute;
+    top: 3px;
+    left: 5px;
+    width: 16px;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+}
+
+#board .component .create-link {
+    position: absolute;
+    left: 50%;
+    top: 2px;
+    margin-left: -10px;
+    width: 16px;
+}
+
+#board .component .close {
+    position: absolute;
+    right: 5px;
+    top: -3px;
+    opacity: 1;
+}
+
+#result .generate, .modal-footer .btn-primary {
+    border: 1px solid #c1c1c1;;
+    background-color: #49ae80;
+    background-image: linear-gradient(to bottom,#4cb183 0,#49ae80 100%);
+}
+
+.modal-footer .btn-warning {
+    border: 1px solid #c1c1c1;;
+    background-color: #c1c1c1;
+    background-image: linear-gradient(to bottom,#dcdcdc 0,#c1c1c1 100%);
+}
+
+#result p {
+    padding: 0;
+    font-size: 18px;
+}
+
+#result p a {
+    color: #49ae80;
+}
+
+.popover {
+    width: 500px;
+}
+
+form .error {
+    color: red;
+    text-align: center;
+}
+
+.components.list-group {
+    box-shadow: none;
+    -webkit-box-shadow:none;
+    margin-left: 0;
+}
+
+.components .list-group-item.col-md-6 {
+    height: 70px;
+    width: 48%;
+    margin: 2px;
+}
+
+.component img {
+    margin-right: 20px;
+}
+
+.component .element {
+    position: relative;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+.component.fixed .element {
+    cursor: default!important;
+}
