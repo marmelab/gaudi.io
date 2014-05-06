@@ -129,6 +129,11 @@ table tr td:first-of-type {
     padding-right: 30px;
 }
 
+.requiremenets {
+    display: block;
+    margin: 30px auto;
+}
+
 
 /**
 * Listing page
