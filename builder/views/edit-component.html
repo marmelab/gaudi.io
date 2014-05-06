@@ -1,0 +1,20 @@
+<div class="modal-body">
+    <form name="detailForm" class="form-horizontal" role="form">
+        <div class="form-group">
+            <label for="name" class="col-sm-3 control-label">Name: </label>
+            <div class="col-sm-9">
+                <input type="text" id="name" name="name" class="form-control" ng-model="values.name" ng-pattern="/^[aA-zZ0-9]+$/" />
+                <span class="error" ng-show="!detailForm.name.$valid">Please use alphanumeric characters</span>
+            </div>
+        </div>
+
+        <div class="{{fieldsType}}" ng-repeat="fieldsType in ['standard', 'custom']">
+            <div class="form-field form-group" ng-include="'edit-attribute.html'" ng-repeat="(name, field) in fields[fieldsType]"  ng-switch="field.type"></div>
+        </div>
+    </form>
+
+    <div class="modal-footer">
+        <button class="btn btn-primary" ng-click="ok(detailForm)" ng-class="{disabled: !detailForm.$valid}">OK</button>
+        <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+    </div>
+</div>

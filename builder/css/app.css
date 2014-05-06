@@ -20,6 +20,13 @@ html, body, .container-fluid, .sidebar {
     height: 30px;
 }
 
+.fork {
+    position: absolute;
+    top: 0;
+    right: 0;
+    border: 0;
+}
+
 .fork img {
     z-index: 2;
 }
