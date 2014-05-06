@@ -1,6 +1,6 @@
-Version: 0.1
+Version: 0.1.4
 Component: non-free
 Origin: gaudi.io
 Label: apt repository
 Architecture: source
-Description: Gaudi debian package repo
+Description: Gaudi debian package repository
