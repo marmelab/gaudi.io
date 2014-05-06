@@ -1,0 +1,14 @@
+<ul class="components list-group row">
+    <li class="list-group-item component col-md-6 clearfix" ng-repeat="(type, component) in availableComponents" data-type="{{ type }}" on-finish-render="onDisplayComponents">
+        <div class="element">
+            <img ng-src="{{ component.logo }}" alt="{{ component.name }}" />
+            <span class="name">{{ component.name }}</span>
+        </div>
+    </li>
+
+    <li class="list-group-item component col-md-6 fixed">
+        <div class="element">
+            And more to come ...
+        </div>
+    </li>
+</ul>
