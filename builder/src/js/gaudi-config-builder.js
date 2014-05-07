@@ -1,8 +1,34 @@
-/*global angular,$,_,joint,YamlDumper,document*/
+/*global angular,$,_,joint,YamlDumper,document,require,window*/
 
-var gaudiConfigBuilder = angular.module('gaudiConfigBuilder', ['ui.bootstrap']);
+require('angular/angular');
+require('angular-route/angular-route');
+require('angular-bootstrap/src/transition/transition');
+require('angular-bootstrap/src/modal/modal');
+require('underscore/underscore');
+var yaml = require('yamljs/bin/yaml');
 
-var graph = new joint.dia.Graph;
+var $ = require('jquery');
+window.jQuery = $;
+
+window._ = require('underscore/underscore');
+
+window.Backbone = require('backbone');
+window.Backbone.$ = $;
+
+require('jqueryui/ui/core');
+require('jqueryui/ui/widget');
+require('jqueryui/ui/mouse');
+require('jqueryui/ui/draggable');
+require('jqueryui/ui/droppable');
+
+// require jointjs
+require('./joint');
+
+require('./gaudi-graph-element');
+
+var gaudiConfigBuilder = angular.module('gaudiConfigBuilder', ['ui.bootstrap.modal']);
+
+var graph = new joint.dia.Graph();
 
 YamlEscaper.prototype.requiresSingleQuoting = function () {
     return false;
@@ -211,7 +237,8 @@ gaudiConfigBuilder.controller('boardController', function ($scope, $modal, build
                 position: { x: left, y: top },
                 size: { width: 216, height: 90 },
                 label: $(element).find('.element').html().trim(),
-                name: name
+                name: name,
+                options: {interactive: true}
             });
 
             graph.addCell(rect);
@@ -259,14 +286,13 @@ gaudiConfigBuilder.controller('resultController', function ($scope, builder) {
 
     $scope.getFileResult = function () {
         var results = $scope.components ? {applications: $scope.components} : '';
-        var yaml = new YamlDumper();
 
         results = cleanEmptyObjects(JSON.parse(JSON.stringify(results)));
         if (_.isEmpty(results)) {
             results = '';
         }
 
-        return yaml.dump(results, 5);
+        return yaml.stringify(results, 5);
     };
 
     $scope.generateFile = function () {
