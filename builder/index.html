@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" ng-app="gaudiConfigBuilder">
+<html lang="en" ng-app="gaudiBuilder">
 <head>
     <meta charset="utf-8">
     <title>Gaudi: Build Your Project's Architecture File</title>
@@ -18,74 +18,17 @@
 
         <div class="row content">
             <section class="col-md-3 sidebar">
-                <ul class="components list-group row" ng-controller="componentsController">
-                    <li class="list-group-item component col-md-6 clearfix" ng-repeat="(type, component) in availableComponents" id="component-{{ $index }}" data-type="{{ type }}" data-logo="{{ component.logo }}" draggable="">
-                        <div class="element">
-                            <img ng-src="{{ component.logo }}" alt="{{ component.name }}" />
-                            <span class="name">{{ component.name }}</span>
-                        </div>
-                    </li>
+                <div ng-controller="componentsCtrl" ng-include="'views/components.html'"></div>
 
-                    <li class="list-group-item component col-md-6 fixed">
-                        <div class="element">
-                            And more to come ...
-                        </div>
-                    </li>
-                </ul>
-
-                <div id="result" ng-controller="resultController">
-                    <pre draggable="">{{ getFileResult() }}</pre>
-
-                    <p class="col-md-8">Download the result and try your architecture with <a href="https://github.com/marmelab/gaudi" target="_blank">Gaudi</a></p>
-                    <button type="button" class="generate btn btn-primary btn-lg pull-right" ng-click="generateFile()">Download</button>
-                </div>
+                <div id="result" ng-controller="yamlCtrl" ng-include="'views/yaml.html'"></div>
             </section>
 
-            <section id="board" class="col-md-9" ng-controller="boardController">
+            <section id="board" class="col-md-9" ng-controller="boardCtrl">
                 <div id="graphContainer" droppable="handleDrop"></div>
             </section>
         </div>
     </div>
 
-    <script type="text/ng-template" id="edit-attribute.html">
-        <label for="{{ name }}" class="col-sm-3 control-label">{{ field.label }}</label>
-
-        <div class="col-sm-9">
-            <input id="{{ name }}" class="form-control" ng-switch-when="text" type="text" ng-model="values[fieldsType][name]" ng-init="values[fieldsType][name]=field.default" />
-
-            <select id="{{ name }}" class="form-control" ng-switch-when="link" ng-model="values[fieldsType][name]" ng-options="option as option for option in componentNames"></select>
-
-            <select id="{{ name }}" class="form-control" ng-switch-when="links" ng-model="values[fieldsType][name]" multiple ng-multiple="true" ng-options="option as option for option in componentNames"></select>
-
-            <select id="{{ name }}" class="form-control" ng-switch-when="choice" ng-model="values[fieldsType][name]" ng-options="option as option for option in field.choices"></select>
-
-            <select id="{{ name }}" class="form-control" ng-switch-when="choices" ng-model="values[fieldsType][name]" multiple ng-multiple="{{ field.multiple }}" ng-options="option as option for option in field.choices"></select>
-        </div>
-    </script>
-
-    <script type="text/ng-template" id="edit-component.html">
-        <div class="modal-body">
-            <form name="detailForm" class="form-horizontal" role="form">
-                <div class="form-group">
-                    <label for="name" class="col-sm-3 control-label">Name: </label>
-                    <div class="col-sm-9">
-                        <input type="text" id="name" name="name" class="form-control" ng-model="values.name" ng-pattern="/^[aA-zZ0-9]+$/" />
-                        <span class="error" ng-show="!detailForm.name.$valid">Please use alphanumeric characters</span>
-                    </div>
-                </div>
-
-                <div class="{{fieldsType}}" ng-repeat="fieldsType in ['standard', 'custom']">
-                    <div class="form-field form-group" ng-include="'edit-attribute.html'" ng-repeat="(name, field) in fields[fieldsType]"  ng-switch="field.type"></div>
-                </div>
-            </form>
-
-            <div class="modal-footer">
-                <button class="btn btn-primary" ng-click="ok(detailForm)" ng-class="{disabled: !detailForm.$valid}">OK</button>
-                <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
-            </div>
-        </div>
-    </script>
-
-    <script type="text/javascript" src="dist/js/gaudi-config-builder.js"></script>
+    <script type="text/javascript" src="dist/js/app.js"></script>
 </body>
 </html>

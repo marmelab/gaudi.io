@@ -1,35 +1,39 @@
 {
-    "name": "gaudi",
-    "version": "0.0.1",
-    "description": "gaudi's presentation page",
-    "repository": "https://github.com/marmelab/gaudi.io",
-    "author": "Emmanuel QUENTIN <emmanuel@marmelab.com>",
-    "license": "MIT",
-    "private": true,
-    "scripts": {
-        "install": "napa"
-    },
-    "napa": {
-        "angular": "angular/bower-angular",
-        "angular-route": "angular/bower-angular-route",
-        "angular-bootstrap": "angular-ui/bootstrap",
-        "joint": "DavidDurman/joint"
-    },
-    "dependencies": {
-        "underscore": "~1.6.0",
-        "lodash": "~2.2.1",
-        "backbone": "~1.0.0",
-        "browserify": "~3.46.0",
-        "yamljs": "~0.1.5",
-        "jquery": "~2.1.1"
-    },
-    "devDependencies": {
-        "napa": "~0.4.1",
-        "gulp": "~3.6.2",
-        "gulp-browserify": "~0.5.0",
-        "gulp-livereload": "~1.4.2",
-        "gulp-concat": "~2.2.0",
-        "gulp-styl": "~0.2.1",
-        "tiny-lr": "~0.0.7"
-    }
+  "name": "gaudi",
+  "version": "0.0.1",
+  "description": "gaudi's presentation page",
+  "repository": "https://github.com/marmelab/gaudi.io",
+  "author": "Emmanuel QUENTIN <emmanuel@marmelab.com>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "install": "napa"
+  },
+  "napa": {
+    "angular": "angular/bower-angular",
+    "angular-route": "angular/bower-angular-route",
+    "angular-bootstrap": "angular-ui/bootstrap",
+    "joint": "DavidDurman/joint"
+  },
+  "dependencies": {
+    "underscore": "~1.6.0",
+    "lodash": "~2.2.1",
+    "backbone": "~1.0.0",
+    "browserify": "~3.46.0",
+    "yamljs": "~0.1.5",
+    "jquery": "~2.1.1",
+    "browserify-fs": "~1.0.0",
+    "stringify": "~2.1.0",
+    "gulp-uglify": "~0.2.1"
+  },
+  "devDependencies": {
+    "napa": "~0.4.1",
+    "gulp": "~3.6.2",
+    "gulp-browserify": "~0.5.0",
+    "gulp-livereload": "~1.4.2",
+    "gulp-concat": "~2.2.0",
+    "gulp-styl": "~0.2.1",
+    "tiny-lr": "~0.0.7",
+    "gulp-ngmin": "~0.3.0"
+  }
 }

@@ -1,6 +1,6 @@
 /*global angular,document*/
 
-angular.module('gaudiConfigBuilder').directive('droppable', function () {
+angular.module('gaudiBuilder').directive('droppable', function () {
     'use strict';
 
     return {

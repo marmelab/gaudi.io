@@ -1,4 +1,7 @@
-/*global $,joint,_,g*/
+/*global $,joint,_,g,module*/
+
+var joint = require('jointjs');
+
 joint.shapes.html = {};
 
 joint.shapes.html.GaudiGraphComponent = joint.shapes.basic.Rect.extend({
@@ -144,3 +147,5 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         this.link.set('target', g.point(evt.offsetX, evt.offsetY));
     }
 });
+
+module.exports = joint.shapes.html.GaudiGraphComponent;
