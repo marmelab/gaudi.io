@@ -67,7 +67,7 @@ angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal,
             editModal;
 
         editModal = $modal.open({
-            templateUrl: 'edit-component.html',
+            templateUrl: 'views/edit-component.html',
             controller: 'editComponentCtrl',
             resolve: {
                 values: function () {
