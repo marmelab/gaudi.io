@@ -1611,6 +1611,24 @@ module.exports = window.joint;
 (function browserifyShim(module, define) {
 
 ; global.$ = require("jquery");
+(function browserifyShim(module, define) {
+
+; global.$ = require("jquery");
+(function browserifyShim(module, define) {
+
+; global.$ = require("jquery");
+(function browserifyShim(module, define) {
+
+; global.$ = require("jquery");
+(function browserifyShim(module, define) {
+
+; global.$ = require("jquery");
+(function browserifyShim(module, define) {
+
+; global.$ = require("jquery");
+(function browserifyShim(module, define) {
+
+; global.$ = require("jquery");
 /**
  * jQuery.fn.sortElements
  * --------------
@@ -1680,6 +1698,18 @@ jQuery.fn.sortElements = (function(){
     };
     
 })();
+}).call(global, module, undefined);
+
+}).call(global, module, undefined);
+
+}).call(global, module, undefined);
+
+}).call(global, module, undefined);
+
+}).call(global, module, undefined);
+
+}).call(global, module, undefined);
+
 }).call(global, module, undefined);
 
 }).call(global, module, undefined);
@@ -7508,6 +7538,24 @@ module.exports=require('k3mQBb');
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 
 ; global.underscore = require("underscore");
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+
+; global.underscore = require("underscore");
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+
+; global.underscore = require("underscore");
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+
+; global.underscore = require("underscore");
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+
+; global.underscore = require("underscore");
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+
+; global.underscore = require("underscore");
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+
+; global.underscore = require("underscore");
 // Vectorizer.
 // -----------
 
@@ -8150,11 +8198,41 @@ module.exports=require('k3mQBb');
 
 }).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
+; browserify_shim__define__module__export__(typeof vectorizer != "undefined" ? vectorizer : window.vectorizer);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof vectorizer != "undefined" ? vectorizer : window.vectorizer);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof vectorizer != "undefined" ? vectorizer : window.vectorizer);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof vectorizer != "undefined" ? vectorizer : window.vectorizer);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof vectorizer != "undefined" ? vectorizer : window.vectorizer);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof vectorizer != "undefined" ? vectorizer : window.vectorizer);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"underscore":"9eM++n"}],"jquery":[function(require,module,exports){
 module.exports=require('lwLqBl');
 },{}],"lwLqBl":[function(require,module,exports){
 (function (global){
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
@@ -17366,6 +17444,30 @@ return jQuery;
 
 }).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
+; browserify_shim__define__module__export__(typeof $ != "undefined" ? $ : window.$);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof $ != "undefined" ? $ : window.$);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof $ != "undefined" ? $ : window.$);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof $ != "undefined" ? $ : window.$);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof $ != "undefined" ? $ : window.$);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof $ != "undefined" ? $ : window.$);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],25:[function(require,module,exports){
 (function (global){
@@ -23739,6 +23841,12 @@ module.exports=require('9eM++n');
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 //     Underscore.js 1.6.0
 //     http://underscorejs.org
 //     (c) 2009-2014 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -25082,6 +25190,30 @@ module.exports=require('9eM++n');
     });
   }
 }).call(this);
+
+; browserify_shim__define__module__export__(typeof _ != "undefined" ? _ : window._);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof _ != "undefined" ? _ : window._);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof _ != "undefined" ? _ : window._);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof _ != "undefined" ? _ : window._);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof _ != "undefined" ? _ : window._);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof _ != "undefined" ? _ : window._);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 ; browserify_shim__define__module__export__(typeof _ != "undefined" ? _ : window._);
 

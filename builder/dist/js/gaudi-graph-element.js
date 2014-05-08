@@ -154,6 +154,9 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
 (function browserifyShim(module, define) {
 
 ; global.$ = require("jquery");
+(function browserifyShim(module, define) {
+
+; global.$ = require("jquery");
 /**
  * jQuery.fn.sortElements
  * --------------
@@ -227,11 +230,16 @@ jQuery.fn.sortElements = (function(){
 
 }).call(global, module, undefined);
 
+}).call(global, module, undefined);
+
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"jquery":"lwLqBl"}],"jquery.sortElements":[function(require,module,exports){
 module.exports=require('BU4qJ2');
 },{}],"k3mQBb":[function(require,module,exports){
 (function (global){
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+
+; global.underscore = require("underscore");
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 
 ; global.underscore = require("underscore");
@@ -872,11 +880,16 @@ module.exports=require('BU4qJ2');
 
 }).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
+; browserify_shim__define__module__export__(typeof vectorizer != "undefined" ? vectorizer : window.vectorizer);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"underscore":"9eM++n"}],"vectorizer":[function(require,module,exports){
 module.exports=require('k3mQBb');
 },{}],"lwLqBl":[function(require,module,exports){
 (function (global){
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 /*!
@@ -10078,11 +10091,16 @@ return jQuery;
 
 }).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
+; browserify_shim__define__module__export__(typeof $ != "undefined" ? $ : window.$);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],"jquery":[function(require,module,exports){
 module.exports=require('lwLqBl');
 },{}],"9eM++n":[function(require,module,exports){
 (function (global){
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 //     Underscore.js 1.6.0
@@ -11428,6 +11446,10 @@ module.exports=require('lwLqBl');
     });
   }
 }).call(this);
+
+; browserify_shim__define__module__export__(typeof _ != "undefined" ? _ : window._);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 ; browserify_shim__define__module__export__(typeof _ != "undefined" ? _ : window._);
 

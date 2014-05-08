@@ -3,7 +3,7 @@
 /**
  * @see: http://blog.parkji.co.uk/2013/08/11/native-drag-and-drop-in-angularjs.html
  */
-angular.module('gaudiConfigBuilder').directive('draggable', function () {
+angular.module('gaudiBuilder').directive('draggable', function () {
     'use strict';
 
     return function (scope, element) {

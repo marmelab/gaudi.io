@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" ng-app="gaudiConfigBuilder">
+<html lang="en" ng-app="gaudiBuilder">
 <head>
     <meta charset="utf-8">
     <title>Gaudi: Build Your Project's Architecture File</title>
@@ -18,8 +18,8 @@
 
         <div class="row content">
             <section class="col-md-3 sidebar">
-                <ul class="components list-group row" ng-controller="componentsController">
-                    <li class="list-group-item component col-md-6 clearfix" ng-repeat="(type, component) in availableComponents" id="component-{{ $index }}" data-type="{{ type }}" data-logo="{{ component.logo }}" draggable="">
+                <ul class="components list-group row" ng-controller="componentsCtrl">
+                    <li class="list-group-item component col-md-6 clearfix" ng-repeat="(type, component) in components" id="component-{{ $index }}" data-type="{{ type }}" data-logo="{{ component.logo }}" draggable="">
                         <div class="element">
                             <img ng-src="{{ component.logo }}" alt="{{ component.name }}" />
                             <span class="name">{{ component.name }}</span>
@@ -33,7 +33,7 @@
                     </li>
                 </ul>
 
-                <div id="result" ng-controller="resultController">
+                <div id="result" ng-controller="yamlCtrl">
                     <pre draggable="">{{ getFileResult() }}</pre>
 
                     <p class="col-md-8">Download the result and try your architecture with <a href="https://github.com/marmelab/gaudi" target="_blank">Gaudi</a></p>
@@ -41,7 +41,7 @@
                 </div>
             </section>
 
-            <section id="board" class="col-md-9" ng-controller="boardController">
+            <section id="board" class="col-md-9" ng-controller="boardCtrl">
                 <div id="graphContainer" droppable="handleDrop"></div>
             </section>
         </div>
@@ -86,6 +86,6 @@
         </div>
     </script>
 
-    <script type="text/javascript" src="dist/js/gaudi-config-builder.js"></script>
+    <script type="text/javascript" src="dist/js/app.js"></script>
 </body>
 </html>

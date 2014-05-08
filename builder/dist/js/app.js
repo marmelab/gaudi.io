@@ -1,19 +1,22 @@
 require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*global require,angular,module*/
+/*global angular,require*/
 
-require('angular/angular');
-require('angular-route/angular-route');
-require('angular-bootstrap/src/transition/transition');
-require('angular-bootstrap/src/modal/modal');
-window._ = require('underscore/underscore');
+window.Backbone     = require('backbone');
+window.Backbone.$   = $;
+var graphElement    = require('jointjs/element');
+var graph           = require('jointjs/graph');
 
-require('./controllers/board');
+require('jointjs/paper');
+require('directives/droppable');
+require('services/selectedComponents');
 
-var gaudiBuilder = angular.module('gaudiBuilder', ['ui.bootstrap.modal']);
+angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal, selectedComponents, $templateCache) {
+    'use strict';
 
-},{"./controllers/board":2,"angular-bootstrap/src/modal/modal":8,"angular-bootstrap/src/transition/transition":9,"angular-route/angular-route":10,"angular/angular":11,"underscore/underscore":"9eM++n"}],2:[function(require,module,exports){
-gaudiBuilder.controller('boardController', function ($scope, $modal, builder) {
-    $scope.components = builder.components;
+    $templateCache.put('template/modal/backdrop.html', require('angular-bootstrap/template/modal/backdrop.html'));
+    $templateCache.put('template/modal/window.html', require('angular-bootstrap/template/modal/window.html'));
+
+    $scope.components = selectedComponents.components;
 
     function onCreateLink(targetId) {
         var name = this.get('name'),
@@ -63,7 +66,7 @@ gaudiBuilder.controller('boardController', function ($scope, $modal, builder) {
 
         editModal = $modal.open({
             templateUrl: 'edit-component.html',
-            controller: 'editComponentController',
+            controller: 'editComponentCtrl',
             resolve: {
                 values: function () {
                     var values = $scope.components[componentName];
@@ -127,7 +130,7 @@ gaudiBuilder.controller('boardController', function ($scope, $modal, builder) {
             name = getElementName(type),
             rect;
 
-        rect = new joint.shapes.html.GaudiGraphComponent({
+        rect = new graphElement({
             position: { x: left, y: top },
             size: { width: 216, height: 90 },
             name: name,
@@ -150,193 +153,58 @@ gaudiBuilder.controller('boardController', function ($scope, $modal, builder) {
     };
 });
 
-},{}],3:[function(require,module,exports){
-/*global angular*/
+},{"angular-bootstrap/template/modal/backdrop.html":8,"angular-bootstrap/template/modal/window.html":9,"backbone":12,"directives/droppable":38,"jointjs/element":39,"jointjs/graph":40,"jointjs/paper":42,"services/selectedComponents":44}],2:[function(require,module,exports){
+/*global angular,require*/
 
-/**
- * @see: http://blog.parkji.co.uk/2013/08/11/native-drag-and-drop-in-angularjs.html
- */
-angular.module('gaudiConfigBuilder').directive('draggable', function () {
+require('directives/draggable');
+require('services/componentFetcher');
+
+angular.module('gaudiBuilder').controller('componentsCtrl', function ($scope, componentFetcher) {
     'use strict';
 
-    return function (scope, element) {
-        // this gives us the native JS object
-        var el = element[0];
-        el.draggable = true;
+    $scope.components = {};
 
-        el.addEventListener('dragstart', function (e) {
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('id', this.id);
-            this.classList.add('drag');
-
-            return false;
-        }, false);
-
-        el.addEventListener('dragend', function () {
-            this.classList.remove('drag');
-
-            return false;
-        }, false);
-    };
-});
-
-},{}],4:[function(require,module,exports){
-/*global angular,document*/
-
-angular.module('gaudiConfigBuilder').directive('droppable', function () {
-    'use strict';
-
-    return {
-        scope: {
-            droppable: '='
-        },
-        link: function (scope, element) {
-            var el = element[0];
-
-            el.addEventListener('dragover', function (e) {
-                e.dataTransfer.dropEffect = 'move';
-
-                if (e.preventDefault) {
-                    e.preventDefault();
-                }
-
-                return false;
-            }, false);
-
-            el.addEventListener('drop', function (e) {
-                // Stops some browsers from redirecting.
-                if (e.stopPropagation) {
-                    e.stopPropagation();
-                }
-
-                var elementDropped = document.getElementById(e.dataTransfer.getData('id')),
-                    dropMethod = scope.droppable;
-
-                // call the drop passed drop function
-                if (typeof dropMethod === 'function') {
-                    scope.droppable(elementDropped, element[0], e);
-                }
-
-                return false;
-            }, false);
-        }
-    };
-});
-
-},{}],5:[function(require,module,exports){
-/*global angular,$,_,joint,YamlDumper,document,require,window*/
-
-require('./app');
-
-var $ = require('jquery');
-window.jQuery = $;
-
-window.Backbone = require('backbone');
-window.Backbone.$ = $;
-window.Backbone.$ = $;
-
-// require jointjs
-require('./joint');
-require('./gaudi-graph-element');
-require('./directives/draggable');
-require('./directives/droppable');
-
-var graph = new joint.dia.Graph();
-
-var paper = new joint.dia.Paper({
-    el: $('#graphContainer'),
-    width: '100%',
-    height: $('.sidebar').height(),
-    gridSize: 1,
-    model: graph
-});
-
-gaudiBuilder.factory('builder', function () {
-    return {
-        components: {},
-        availableComponents: {}
-    };
-});
-
-gaudiBuilder.controller('componentsController', function ($scope, $http, builder) {
-    $scope.availableComponents = {};
-
-    $http.get('data/components.json').success(function (data) {
-        $scope.availableComponents = data;
-        builder.availableComponents = data;
+    componentFetcher.getAllComponents().then(function (components) {
+        $scope.components = components;
     });
 });
 
-gaudiBuilder.controller('resultController', function ($scope, builder) {
-    $scope.components = builder.components;
+},{"directives/draggable":37,"services/componentFetcher":43}],3:[function(require,module,exports){
+/*global require,angular*/
 
-    function cleanEmptyObjects(object) {
-        if (_.isEmpty(object)) {
-            return '';
-        }
+require('services/yamlParser');
 
-        for (var prop in object) {
-            if (!object.hasOwnProperty(prop) || typeof object[prop] !== 'object') {
-                continue;
-            }
+angular.module('gaudiBuilder').controller('editComponentCtrl', function ($scope, $modalInstance, $compile, selectedComponents, componentFetcher, yamlParser, values) {
+    'use strict';
 
-            if (prop === 'standard') {
-                delete object[prop];
-                continue;
-            }
+    var allComponents = {};
 
-            object[prop] = cleanEmptyObjects(object[prop]);
-            if (_.isEmpty(object[prop])) {
-                delete object[prop];
-            }
-        }
+    componentFetcher.getAllComponents().then(function (components) {
+        allComponents = components;
 
-        return object;
-    }
+        // Inject fields types
+        $scope.fields = {};
+        $scope.fields.custom = allComponents[values.type].customFields;
+        $scope.fields.standard = allComponents[values.type].fields;
 
-    $scope.getFileResult = function () {
-        var results = $scope.components ? {applications: $scope.components} : '';
-
-        results = cleanEmptyObjects(JSON.parse(JSON.stringify(results)));
-        if (_.isEmpty(results)) {
-            results = '';
-        }
-
-        return yaml.stringify(results, 5);
-    };
-
-    $scope.generateFile = function () {
-        var fakeLink = document.createElement('a');
-
-        fakeLink.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(this.getFileResult()));
-        fakeLink.setAttribute('download', '.gaudi.yml');
-        fakeLink.click();
-    };
-});
-
-gaudiBuilder.controller('editComponentController', function ($scope, $modalInstance, $compile, builder, values) {
-    // Inject fields types
-    $scope.fields = {};
-    $scope.fields.custom = builder.availableComponents[values.type].customFields;
-    $scope.fields.standard = builder.availableComponents[values.type].fields;
-
-    // Inject fields values
-    $scope.componentNames = Object.keys(builder.components);
-    $scope.values = values;
-    $scope.values.custom = $scope.values.custom || {};
-    $scope.values.standard = $scope.values.standard || {};
+        // Inject fields values
+        $scope.componentNames = Object.keys(selectedComponents.components);
+        $scope.values = values;
+        $scope.values.custom = $scope.values.custom || {};
+        $scope.values.standard = $scope.values.standard || {};
+    });
 
     $scope.ok = function () {
         var name = $scope.values.name,
-            componentFields = builder.availableComponents[$scope.values.type].fields;
+            componentFields = allComponents[$scope.values.type].fields;
 
         delete $scope.values.name;
 
         // Merge standard values with root element
         angular.forEach($scope.values.standard, function (standardValue, standardName) {
             // Check if the value is a map
-            if (typeof componentFields[standardName].multiple !== undefined && componentFields[standardName].multiple && typeof standardValue === 'string') {
-                standardValue = parseMapValue(standardValue);
+            if (typeof componentFields[standardName].multiple !== 'undefined' && componentFields[standardName].multiple && typeof standardValue === 'string') {
+                standardValue = yamlParser.parseMapValue(standardValue);
             }
 
             $scope.values[standardName] = standardValue;
@@ -356,181 +224,54 @@ gaudiBuilder.controller('editComponentController', function ($scope, $modalInsta
     };
 });
 
-},{"./app":1,"./directives/draggable":3,"./directives/droppable":4,"./gaudi-graph-element":6,"./joint":7,"backbone":12,"jquery":"lwLqBl"}],6:[function(require,module,exports){
-/*global $,joint,_,g*/
-joint.shapes.html = {};
+},{"services/yamlParser":45}],4:[function(require,module,exports){
+/*global require,angular,_,document*/
 
-joint.shapes.html.GaudiGraphComponent = joint.shapes.basic.Rect.extend({
-    defaults: joint.util.deepSupplement({
-        type: 'html.Element',
-        attrs: {
-            rect: { stroke: 'none', 'fill-opacity': 0 }
-        }
-    }, joint.shapes.basic.Rect.prototype.defaults)
-});
+require('services/yamlParser');
 
-joint.shapes.html.ElementView = joint.dia.ElementView.extend({
+angular.module('gaudiBuilder').controller('yamlCtrl', function ($scope, selectedComponents, yamlParser) {
+    'use strict';
 
-    link: null,
-    canUpdateLink: false,
+    $scope.components = selectedComponents.components;
 
-    template: [
-        '<div class="component">',
-        '<div class="element">',
-        '<span class="image"></span>',
-        '<span class="name"></span>',
-        '</div>',
-        '<div class="tools">',
-        '<button class="edit glyphicon glyphicon-wrench" data-container="body"></button>',
-        '<div class="create-link glyphicon glyphicon-record"></div>',
-        '<button class="close">&times;</button>',
-        '</div>',
-        '</div>'
-    ].join(''),
+    $scope.getFileResult = function () {
+        var results = $scope.components ? {applications: $scope.components} : '';
 
-    initialize: function () {
-        _.bindAll(this, 'updateBox');
-        joint.dia.ElementView.prototype.initialize.apply(this, arguments);
-
-        this.$box = $(_.template(this.template)());
-
-        this.model.on('change', this.updateBox, this);
-        this.model.on('remove', this.removeBox, this);
-
-        this.updateBox();
-    },
-    render: function () {
-        joint.dia.ElementView.prototype.render.apply(this, arguments);
-        this.paper.$el.prepend(this.$box);
-        this.updateBox();
-
-        this.$box.find('.create-link').on('mousedown', this.createLink.bind(this));
-        this.$box.find('.edit').on('click', this.triggerOpenDetail.bind(this));
-        this.$box.find('.close').on('click', _.bind(this.model.remove, this.model));
-        this.$box.attr('data-type', this.model.get('componentType'));
-        this.$box.find('.image').html('<img alt="MySQL" src="' + this.model.get('logo') + '">');
-        this.$box.find('.name').html(this.model.get('name'));
-
-        this.paper.$el.mousemove(this.onMouseMove.bind(this));
-        this.paper.$el.mouseup(this.onMouseUp.bind(this));
-
-        this.updateName();
-
-        return this;
-    },
-
-    updateName: function () {
-        this.$box.find('.name').html(this.model.get('name'));
-    },
-
-    updateBox: function () {
-        var bbox = this.model.getBBox();
-
-        this.updateName();
-
-        this.$box.css({ width: bbox.width, height: bbox.height, left: bbox.x, top: bbox.y, transform: 'rotate(' + (this.model.get('angle') || 0) + 'deg)' });
-    },
-
-    removeBox: function (evt) {
-        this.model.trigger('onRemove');
-
-        this.$box.remove();
-    },
-
-    triggerOpenDetail: function (e) {
-        e.preventDefault();
-
-        this.model.trigger('onOpenDetail');
-    },
-
-    createLink: function (evt) {
-        var self = this,
-            paperOffset = this.paper.$el.offset(),
-            targetOffset = $(evt.target).offset(),
-            x = targetOffset.left - paperOffset.left,
-            y = targetOffset.top  - paperOffset.top;
-
-        this.link = new joint.dia.Link({
-            source: {id: this.model.get('id')},
-            target: g.point(x, y),
-            z: -1,
-            attrs: {
-                '.connection': { stroke: '#49ae80', 'stroke-width': 6, opacity: 0.5 },
-                '.marker-target': { stroke: '#49ae80', fill: '#49ae80', 'stroke-width': 2, d: 'M 10 0 L 0 5 L 10 10 z' },
-                '.marker-source': { stroke: '#49ae80', fill: '#49ae80', 'stroke-width': 2, d: 'M 10 0 L 0 5 L 10 10 z' },
-                '.marker-vertices': {display: 'none'}
-            }
-        });
-        this.paper.model.addCell(this.link);
-
-        // marker arrow color change
-        this.link.on('remove', function (lnk) {
-            self.model.trigger('removeLink', lnk.get('source').id, lnk.get('target').id);
-        });
-
-        this.link.on('change:target', function (lnk) {
-            var target = lnk.get('target');
-
-            // Check if the second arrow is uppon a rect at the first d&d (at the second jointjs will handle it correctly)
-            if (typeof (target.id) === 'undefined') {
-                var rect = self.paper.findViewsFromPoint(g.point(target.x, target.y))[0];
-                if (!rect || lnk.get('source').id === rect.model.get('id')) {
-                    return;
-                }
-
-                target = rect;
-                target.$el.addClass('arrowOver');
-                lnk.set('target', {id: target.model.get('id')});
-                return;
-            }
-
-            self.model.trigger('createLink', target.id);
-        });
-
-        this.canUpdateLink = true;
-    },
-
-    onMouseUp: function () {
-        this.canUpdateLink = false;
-        this.paper.$el.find('.component').css("z-index", 1);
-    },
-
-    onMouseMove: function (evt) {
-        if (!this.link || !this.canUpdateLink || evt.offsetX <= 10) {
-            return;
+        results = yamlParser.cleanEmptyObjects(JSON.parse(JSON.stringify(results)));
+        if (_.isEmpty(results)) {
+            results = '';
         }
 
-        this.link.set('target', g.point(evt.offsetX, evt.offsetY));
-    }
+        return yamlParser.dump(results, 5);
+    };
+
+    $scope.generateFile = function () {
+        var fakeLink = document.createElement('a');
+
+        fakeLink.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(this.getFileResult()));
+        fakeLink.setAttribute('download', '.gaudi.yml');
+        fakeLink.click();
+    };
 });
 
-},{}],7:[function(require,module,exports){
-var geometry    = require('joint/src/geometry');
-var graph       = require('joint/src/joint.dia.graph');
-var link        = require('joint/src/joint.dia.link');
-var element     = require('joint/src/joint.dia.element');
-var vectorizer  = require('vectorizer');
-window.g        = geometry.g;
+},{"services/yamlParser":45}],5:[function(require,module,exports){
+/*global require,angular,module,window,document,joint*/
 
-require('jquery.sortElements');
+require('angular/angular');
+require('angular-route/angular-route');
+require('angular-bootstrap/src/transition/transition');
+require('angular-bootstrap/src/modal/modal');
+window._ = require('underscore/underscore');
+window.jQuery = require('jquery');
 
-window.joint = {
-    dia: {
-        Graph: graph.Graph,
-        Link: link.Link,
-        LinkView: link.LinkView,
-        Element: element.Element,
-        ElementView: element.ElementView
-    },
-    util: require('joint/src/core').util,
-    shapes: require('joint/plugins/shapes')
-};
+angular.module('gaudiBuilder', ['ui.bootstrap.modal']);
 
-require('joint/src/joint.dia.paper');
+require('./controllers/board');
+require('./controllers/components');
+require('./controllers/editComponent');
+require('./controllers/yaml');
 
-module.exports = window.joint;
-
-},{"joint/plugins/shapes":23,"joint/src/core":24,"joint/src/geometry":25,"joint/src/joint.dia.element":27,"joint/src/joint.dia.graph":28,"joint/src/joint.dia.link":29,"joint/src/joint.dia.paper":30,"jquery.sortElements":"BU4qJ2","vectorizer":"k3mQBb"}],8:[function(require,module,exports){
+},{"./controllers/board":1,"./controllers/components":2,"./controllers/editComponent":3,"./controllers/yaml":4,"angular-bootstrap/src/modal/modal":6,"angular-bootstrap/src/transition/transition":7,"angular-route/angular-route":10,"angular/angular":11,"jquery":"lwLqBl","underscore/underscore":"9eM++n"}],6:[function(require,module,exports){
 angular.module('ui.bootstrap.modal', ['ui.bootstrap.transition'])
 
 /**
@@ -933,7 +674,7 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.transition'])
     return $modalProvider;
   });
 
-},{}],9:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 angular.module('ui.bootstrap.transition', [])
 
 /**
@@ -1017,9 +758,21 @@ angular.module('ui.bootstrap.transition', [])
   return $transition;
 }]);
 
+},{}],8:[function(require,module,exports){
+module.exports = "<div class=\"modal-backdrop fade {{ backdropClass }}\"" +
+"     ng-class=\"{in: animate}\"" +
+"     ng-style=\"{'z-index': 1040 + (index && 1 || 0) + index*10}\"" +
+"></div>" +
+"" ;
+
+},{}],9:[function(require,module,exports){
+module.exports = "<div tabindex=\"-1\" role=\"dialog\" class=\"modal fade\" ng-class=\"{in: animate}\" ng-style=\"{'z-index': 1050 + index*10, display: 'block'}\" ng-click=\"close($event)\">" +
+"    <div class=\"modal-dialog\" ng-class=\"{'modal-sm': size == 'sm', 'modal-lg': size == 'lg'}\"><div class=\"modal-content\" modal-transclude></div></div>" +
+"</div>" ;
+
 },{}],10:[function(require,module,exports){
 /**
- * @license AngularJS v1.2.17-build.160+sha.31bdb60
+ * @license AngularJS v1.3.0-build.2686+sha.6593d83
  * (c) 2010-2014 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -1538,7 +1291,7 @@ function $RouteProvider(){
 
               angular.forEach(locals, function(value, key) {
                 locals[key] = angular.isString(value) ?
-                    $injector.get(value) : $injector.invoke(value);
+                    $injector.get(value) : $injector.invoke(value, null, null, key);
               });
 
               if (angular.isDefined(template = next.template)) {
@@ -1948,7 +1701,7 @@ function ngViewFillContentFactory($compile, $controller, $route) {
 
 },{}],11:[function(require,module,exports){
 /**
- * @license AngularJS v1.2.17-build.160+sha.31bdb60
+ * @license AngularJS v1.3.0-build.2686+sha.6593d83
  * (c) 2010-2014 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -2017,7 +1770,7 @@ function minErr(module) {
       return match;
     });
 
-    message = message + '\nhttp://errors.angularjs.org/1.2.17-build.160+sha.31bdb60/' +
+    message = message + '\nhttp://errors.angularjs.org/1.3.0-build.2686+sha.6593d83/' +
       (module ? module + '/' : '') + code;
     for (i = 2; i < arguments.length; i++) {
       message = message + (i == 2 ? '?' : '&') + 'p' + (i-2) + '=' +
@@ -3163,6 +2916,19 @@ function encodeUriQuery(val, pctEncodeSpaces) {
              replace(/%20/g, (pctEncodeSpaces ? '%20' : '+'));
 }
 
+var ngAttrPrefixes = ['ng-', 'data-ng-', 'ng:', 'x-ng-'];
+
+function getNgAttribute(element, ngAttr) {
+  var attr, i, ii = ngAttrPrefixes.length, j, jj;
+  element = jqLite(element);
+  for (i=0; i<ii; ++i) {
+    attr = ngAttrPrefixes[i] + ngAttr;
+    if (isString(attr = element.attr(attr))) {
+      return attr;
+    }
+  }
+  return null;
+}
 
 /**
  * @ngdoc directive
@@ -3172,6 +2938,11 @@ function encodeUriQuery(val, pctEncodeSpaces) {
  * @element ANY
  * @param {angular.Module} ngApp an optional application
  *   {@link angular.module module} name to load.
+ * @param {boolean=} ngStrictDi if this attribute is present on the app element, the injector will be
+ *   created in "strict-di" mode. This means that the application will fail to invoke functions which
+ *   do not use explicit function annotation (and are thus unsuitable for minification), as described
+ *   in {@link guide/di the Dependency Injection guide}, and useful debugging info will assist in
+ *   tracking down the root of these bugs.
  *
  * @description
  *
@@ -3209,12 +2980,92 @@ function encodeUriQuery(val, pctEncodeSpaces) {
    </file>
  </example>
  *
+ * Using `ngStrictDi`, you would see something like this:
+ *
+ <example ng-app-included="true">
+   <file name="index.html">
+   <div ng-app="ngAppStrictDemo" ng-strict-di>
+       <div ng-controller="GoodController1">
+           I can add: {{a}} + {{b}} =  {{ a+b }}
+
+           <p>This renders because the controller does not fail to
+              instantiate, by using explicit annotation style (see
+              script.js for details)
+           </p>
+       </div>
+
+       <div ng-controller="GoodController2">
+           Name: <input ng-model="name"><br />
+           Hello, {{name}}!
+
+           <p>This renders because the controller does not fail to
+              instantiate, by using explicit annotation style
+              (see script.js for details)
+           </p>
+       </div>
+
+       <div ng-controller="BadController">
+           I can add: {{a}} + {{b}} =  {{ a+b }}
+
+           <p>The controller could not be instantiated, due to relying
+              on automatic function annotations (which are disabled in
+              strict mode). As such, the content of this section is not
+              interpolated, and there should be an error in your web console.
+           </p>
+       </div>
+   </div>
+   </file>
+   <file name="script.js">
+   angular.module('ngAppStrictDemo', [])
+     // BadController will fail to instantiate, due to relying on automatic function annotation,
+     // rather than an explicit annotation
+     .controller('BadController', function($scope) {
+       $scope.a = 1;
+       $scope.b = 2;
+     })
+     // Unlike BadController, GoodController1 and GoodController2 will not fail to be instantiated,
+     // due to using explicit annotations using the array style and $inject property, respectively.
+     .controller('GoodController1', ['$scope', function($scope) {
+       $scope.a = 1;
+       $scope.b = 2;
+     }])
+     .controller('GoodController2', GoodController2);
+     function GoodController2($scope) {
+       $scope.name = "World";
+     }
+     GoodController2.$inject = ['$scope'];
+   </file>
+   <file name="style.css">
+   div[ng-controller] {
+       margin-bottom: 1em;
+       -webkit-border-radius: 4px;
+       border-radius: 4px;
+       border: 1px solid;
+       padding: .5em;
+   }
+   div[ng-controller^=Good] {
+       border-color: #d6e9c6;
+       background-color: #dff0d8;
+       color: #3c763d;
+   }
+   div[ng-controller^=Bad] {
+       border-color: #ebccd1;
+       background-color: #f2dede;
+       color: #a94442;
+       margin-bottom: 0;
+   }
+   </file>
+ </example>
  */
 function angularInit(element, bootstrap) {
   var elements = [element],
       appElement,
       module,
+      config = {},
       names = ['ng:app', 'ng-app', 'x-ng-app', 'data-ng-app'],
+      options = {
+        'boolean': ['strict-di']
+      },
       NG_APP_CLASS_REGEXP = /\sng[:\-]app(:\s*([\w\d_]+);?)?\s/;
 
   function append(element) {
@@ -3250,7 +3101,8 @@ function angularInit(element, bootstrap) {
     }
   });
   if (appElement) {
-    bootstrap(appElement, module ? [module] : []);
+    config.strictDi = getNgAttribute(appElement, "strict-di") !== null;
+    bootstrap(appElement, module ? [module] : [], config);
   }
 }
 
@@ -3263,7 +3115,7 @@ function angularInit(element, bootstrap) {
  *
  * See: {@link guide/bootstrap Bootstrap}
  *
- * Note that ngScenario-based end-to-end tests cannot use this function to bootstrap manually.
+ * Note that Protractor based end-to-end tests cannot use this function to bootstrap manually.
  * They must use {@link ng.directive:ngApp ngApp}.
  *
  * Angular will detect if it has been loaded into the browser more than once and only allow the
@@ -3271,44 +3123,45 @@ function angularInit(element, bootstrap) {
  * each of the subsequent scripts.   This prevents strange results in applications, where otherwise
  * multiple instances of Angular try to work on the DOM.
  *
- * <example name="multi-bootstrap" module="multi-bootstrap">
- * <file name="index.html">
- * <script src="../../../angular.js"></script>
- * <div ng-controller="BrokenTable">
- *   <table>
- *   <tr>
- *     <th ng-repeat="heading in headings">{{heading}}</th>
- *   </tr>
- *   <tr ng-repeat="filling in fillings">
- *     <td ng-repeat="fill in filling">{{fill}}</td>
- *   </tr>
- * </table>
+ * ```html
+ * <!doctype html>
+ * <html>
+ * <body>
+ * <div ng-controller="WelcomeController">
+ *   {{greeting}}
  * </div>
- * </file>
- * <file name="controller.js">
- * var app = angular.module('multi-bootstrap', [])
  *
- * .controller('BrokenTable', function($scope) {
- *     $scope.headings = ['One', 'Two', 'Three'];
- *     $scope.fillings = [[1, 2, 3], ['A', 'B', 'C'], [7, 8, 9]];
- * });
- * </file>
- * <file name="protractor.js" type="protractor">
- * it('should only insert one table cell for each item in $scope.fillings', function() {
- *  expect(element.all(by.css('td')).count())
- *      .toBe(9);
- * });
- * </file>
- * </example>
+ * <script src="angular.js"></script>
+ * <script>
+ *   var app = angular.module('demo', [])
+ *   .controller('WelcomeController', function($scope) {
+ *       $scope.greeting = 'Welcome!';
+ *   });
+ *   angular.bootstrap(document, ['demo']);
+ * </script>
+ * </body>
+ * </html>
+ * ```
  *
  * @param {DOMElement} element DOM element which is the root of angular application.
  * @param {Array<String|Function|Array>=} modules an array of modules to load into the application.
  *     Each item in the array should be the name of a predefined module or a (DI annotated)
  *     function that will be invoked by the injector as a run block.
  *     See: {@link angular.module modules}
+ * @param {Object=} config an object for defining configuration options for the application. The
+ *     following keys are supported:
+ *
+ *     - `strictDi`: disable automatic function annotation for the application. This is meant to
+ *       assist in finding bugs which break minified code.
+ *
  * @returns {auto.$injector} Returns the newly created injector for this app.
  */
-function bootstrap(element, modules) {
+function bootstrap(element, modules, config) {
+  if (!isObject(config)) config = {};
+  var defaultConfig = {
+    strictDi: false
+  };
+  config = extend(defaultConfig, config);
   var doBootstrap = function() {
     element = jqLite(element);
 
@@ -3322,7 +3175,7 @@ function bootstrap(element, modules) {
       $provide.value('$rootElement', element);
     }]);
     modules.unshift('ng');
-    var injector = createInjector(modules);
+    var injector = createInjector(modules, config.strictDi);
     injector.invoke(['$rootScope', '$rootElement', '$compile', '$injector', '$animate',
        function(scope, element, compile, injector, animate) {
         scope.$apply(function() {
@@ -3535,9 +3388,9 @@ function setupModuleLoader(window) {
      * {@link angular.bootstrap} to simplify this process for you.
      *
      * @param {!string} name The name of the module to create or retrieve.
-<<<<<* @param {!Array.<string>=} requires If specified then new module is being created. If
->>>>>*        unspecified then the module is being retrieved for further configuration.
-     * @param {Function} configFn Optional configuration function for the module. Same as
+     * @param {!Array.<string>=} requires If specified then new module is being created. If
+     *        unspecified then the module is being retrieved for further configuration.
+     * @param {Function=} configFn Optional configuration function for the module. Same as
      *        {@link angular.Module#config Module#config()}.
      * @returns {module} new module with the {@link angular.Module} api.
      */
@@ -3563,14 +3416,18 @@ function setupModuleLoader(window) {
         var invokeQueue = [];
 
         /** @type {!Array.<Function>} */
+        var configBlocks = [];
+
+        /** @type {!Array.<Function>} */
         var runBlocks = [];
 
-        var config = invokeLater('$injector', 'invoke');
+        var config = invokeLater('$injector', 'invoke', 'push', configBlocks);
 
         /** @type {angular.Module} */
         var moduleInstance = {
           // Private state
           _invokeQueue: invokeQueue,
+          _configBlocks: configBlocks,
           _runBlocks: runBlocks,
 
           /**
@@ -3762,9 +3619,10 @@ function setupModuleLoader(window) {
          * @param {String=} insertMethod
          * @returns {angular.Module}
          */
-        function invokeLater(provider, method, insertMethod) {
+        function invokeLater(provider, method, insertMethod, queue) {
+          if (!queue) queue = invokeQueue;
           return function() {
-            invokeQueue[insertMethod || 'push']([provider, method, arguments]);
+            queue[insertMethod || 'push']([provider, method, arguments]);
             return moduleInstance;
           };
         }
@@ -3820,6 +3678,7 @@ function setupModuleLoader(window) {
     requiredDirective,
     requiredDirective,
     ngValueDirective,
+    ngModelOptionsDirective,
     ngAttributeAliasDirectives,
     ngEventDirectives,
 
@@ -3867,10 +3726,10 @@ function setupModuleLoader(window) {
  * - `codeName` – `{string}` – Code name of the release, such as "jiggling-armfat".
  */
 var version = {
-  full: '1.2.17-build.160+sha.31bdb60',    // all of these placeholder strings will be replaced by grunt's
+  full: '1.3.0-build.2686+sha.6593d83',    // all of these placeholder strings will be replaced by grunt's
   major: 1,    // package task
-  minor: 2,
-  dot: 17,
+  minor: 3,
+  dot: 0,
   codeName: 'snapshot'
 };
 
@@ -3957,7 +3816,8 @@ function publishExternalAPI(angular){
             ngChange: ngChangeDirective,
             required: requiredDirective,
             ngRequired: requiredDirective,
-            ngValue: ngValueDirective
+            ngValue: ngValueDirective,
+            ngModelOptions: ngModelOptionsDirective
         }).
         directive({
           ngInclude: ngIncludeFillContentDirective
@@ -4200,19 +4060,17 @@ function jqLiteIsTextNode(html) {
 function jqLiteBuildFragment(html, context) {
   var elem, tmp, tag, wrap,
       fragment = context.createDocumentFragment(),
-      nodes = [], i, j, jj;
+      nodes = [], i;
 
   if (jqLiteIsTextNode(html)) {
     // Convert non-html into a text node
     nodes.push(context.createTextNode(html));
   } else {
-    tmp = fragment.appendChild(context.createElement('div'));
     // Convert html into DOM nodes
+    tmp = tmp || fragment.appendChild(context.createElement("div"));
     tag = (TAG_NAME_REGEXP.exec(html) || ["", ""])[1].toLowerCase();
     wrap = wrapMap[tag] || wrapMap._default;
-    tmp.innerHTML = '<div>&#160;</div>' +
-      wrap[1] + html.replace(XHTML_TAG_REGEXP, "<$1></$2>") + wrap[2];
-    tmp.removeChild(tmp.firstChild);
+    tmp.innerHTML = wrap[1] + html.replace(XHTML_TAG_REGEXP, "<$1></$2>") + wrap[2];
 
     // Descend through wrappers to the right content
     i = wrap[0];
@@ -4220,7 +4078,7 @@ function jqLiteBuildFragment(html, context) {
       tmp = tmp.lastChild;
     }
 
-    for (j=0, jj=tmp.childNodes.length; j<jj; ++j) nodes.push(tmp.childNodes[j]);
+    nodes = concat(nodes, tmp.childNodes);
 
     tmp = fragment.firstChild;
     tmp.textContent = "";
@@ -4229,7 +4087,11 @@ function jqLiteBuildFragment(html, context) {
   // Remove wrapper from fragment
   fragment.textContent = "";
   fragment.innerHTML = ""; // Clear inner HTML
-  return nodes;
+  forEach(nodes, function(node) {
+    fragment.appendChild(node);
+  });
+
+  return fragment;
 }
 
 function jqLiteParseHTML(html, context) {
@@ -4240,7 +4102,11 @@ function jqLiteParseHTML(html, context) {
     return [context.createElement(parsed[1])];
   }
 
-  return jqLiteBuildFragment(html, context);
+  if ((parsed = jqLiteBuildFragment(html, context))) {
+    return parsed.childNodes;
+  }
+
+  return [];
 }
 
 /////////////////////////////////////////////
@@ -4260,8 +4126,6 @@ function JQLite(element) {
 
   if (isString(element)) {
     jqLiteAddNodes(this, jqLiteParseHTML(element));
-    var fragment = jqLite(document.createDocumentFragment());
-    fragment.append(this);
   } else {
     jqLiteAddNodes(this, element);
   }
@@ -5112,7 +4976,19 @@ var FN_ARG_SPLIT = /,/;
 var FN_ARG = /^\s*(_?)(\S+?)\1\s*$/;
 var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
 var $injectorMinErr = minErr('$injector');
-function annotate(fn) {
+
+function anonFn(fn) {
+  // For anonymous functions, showing at the very least the function signature can help in
+  // debugging.
+  var fnText = fn.toString().replace(STRIP_COMMENTS, ''),
+      args = fnText.match(FN_ARGS);
+  if (args) {
+    return 'function(' + (args[1] || '').replace(/[\s\r\n]+/, ' ') + ')';
+  }
+  return 'fn';
+}
+
+function annotate(fn, strictDi, name) {
   var $inject,
       fnText,
       argDecl,
@@ -5122,6 +4998,13 @@ function annotate(fn) {
     if (!($inject = fn.$inject)) {
       $inject = [];
       if (fn.length) {
+        if (strictDi) {
+          if (!isString(name) || !name) {
+            name = fn.name || anonFn(fn);
+          }
+          throw $injectorMinErr('strictdi',
+            '{0} is not using explicit annotation and cannot be invoked in strict mode', name);
+        }
         fnText = fn.toString().replace(STRIP_COMMENTS, '');
         argDecl = fnText.match(FN_ARGS);
         forEach(argDecl[1].split(FN_ARG_SPLIT), function(arg){
@@ -5633,7 +5516,8 @@ function annotate(fn) {
  */
 
 
-function createInjector(modulesToLoad) {
+function createInjector(modulesToLoad, strictDi) {
+  strictDi = (strictDi === true);
   var INSTANTIATING = {},
       providerSuffix = 'Provider',
       path = [],
@@ -5651,13 +5535,13 @@ function createInjector(modulesToLoad) {
       providerInjector = (providerCache.$injector =
           createInternalInjector(providerCache, function() {
             throw $injectorMinErr('unpr', "Unknown provider: {0}", path.join(' <- '));
-          })),
+          }, strictDi)),
       instanceCache = {},
       instanceInjector = (instanceCache.$injector =
           createInternalInjector(instanceCache, function(servicename) {
             var provider = providerInjector.get(servicename + providerSuffix);
-            return instanceInjector.invoke(provider.$get, provider);
-          }));
+            return instanceInjector.invoke(provider.$get, provider, undefined, servicename);
+          }, strictDi));
 
 
   forEach(loadModules(modulesToLoad), function(fn) { instanceInjector.invoke(fn || noop); });
@@ -5719,22 +5603,27 @@ function createInjector(modulesToLoad) {
   // Module Loading
   ////////////////////////////////////
   function loadModules(modulesToLoad){
-    var runBlocks = [], moduleFn, invokeQueue, i, ii;
+    var runBlocks = [], moduleFn, invokeQueue;
     forEach(modulesToLoad, function(module) {
       if (loadedModules.get(module)) return;
       loadedModules.put(module, true);
+
+      function runInvokeQueue(queue) {
+        var i, ii;
+        for(i = 0, ii = queue.length; i < ii; i++) {
+          var invokeArgs = queue[i],
+              provider = providerInjector.get(invokeArgs[0]);
+
+          provider[invokeArgs[1]].apply(provider, invokeArgs[2]);
+        }
+      }
 
       try {
         if (isString(module)) {
           moduleFn = angularModule(module);
           runBlocks = runBlocks.concat(loadModules(moduleFn.requires)).concat(moduleFn._runBlocks);
-
-          for(invokeQueue = moduleFn._invokeQueue, i = 0, ii = invokeQueue.length; i < ii; i++) {
-            var invokeArgs = invokeQueue[i],
-                provider = providerInjector.get(invokeArgs[0]);
-
-            provider[invokeArgs[1]].apply(provider, invokeArgs[2]);
-          }
+          runInvokeQueue(moduleFn._invokeQueue);
+          runInvokeQueue(moduleFn._configBlocks);
         } else if (isFunction(module)) {
             runBlocks.push(providerInjector.invoke(module));
         } else if (isArray(module)) {
@@ -5789,9 +5678,14 @@ function createInjector(modulesToLoad) {
       }
     }
 
-    function invoke(fn, self, locals){
+    function invoke(fn, self, locals, serviceName){
+      if (typeof locals === 'string') {
+        serviceName = locals;
+        locals = null;
+      }
+
       var args = [],
-          $inject = annotate(fn),
+          $inject = annotate(fn, strictDi, serviceName),
           length, i,
           key;
 
@@ -5817,7 +5711,7 @@ function createInjector(modulesToLoad) {
       return fn.apply(self, args);
     }
 
-    function instantiate(Type, locals) {
+    function instantiate(Type, locals, serviceName) {
       var Constructor = function() {},
           instance, returnedValue;
 
@@ -5825,7 +5719,7 @@ function createInjector(modulesToLoad) {
       // e.g. someModule.factory('greeter', ['$window', function(renamed$window) {}]);
       Constructor.prototype = (isArray(Type) ? Type[Type.length - 1] : Type).prototype;
       instance = new Constructor();
-      returnedValue = invoke(Type, instance, locals);
+      returnedValue = invoke(Type, instance, locals, serviceName);
 
       return isObject(returnedValue) || isFunction(returnedValue) ? returnedValue : instance;
     }
@@ -5841,6 +5735,8 @@ function createInjector(modulesToLoad) {
     };
   }
 }
+
+createInjector.$$annotate = annotate;
 
 /**
  * @ngdoc service
@@ -6054,8 +5950,9 @@ var $AnimateProvider = ['$provide', function($provide) {
        * @ngdoc method
        * @name $animate#enter
        * @function
-       * @description Inserts the element into the DOM either after the `after` element or within
-       *   the `parent` element. Once complete, the done() callback will be fired (if provided).
+       * @description Inserts the element into the DOM either after the `after` element or
+       * as the first child within the `parent` element. Once complete, the done() callback
+       * will be fired (if provided).
        * @param {DOMElement} element the element which will be inserted into the DOM
        * @param {DOMElement} parent the parent element which will append the element as
        *   a child (if the after element is not present)
@@ -6065,14 +5962,9 @@ var $AnimateProvider = ['$provide', function($provide) {
        *   inserted into the DOM
        */
       enter : function(element, parent, after, done) {
-        if (after) {
-          after.after(element);
-        } else {
-          if (!parent || !parent[0]) {
-            parent = after.parent();
-          }
-          parent.append(element);
-        }
+        after
+            ? after.after(element)
+            : parent.prepend(element);
         async(done);
       },
 
@@ -7192,6 +7084,19 @@ function $TemplateCacheProvider() {
  * * `M` - Comment: `<!-- directive: my-directive exp -->`
  *
  *
+ * #### `type`
+ * String representing the document type used by the markup. This is useful for templates where the root
+ * node is non-HTML content (such as SVG or MathML). The default value is "html".
+ *
+ * * `html` - All root template nodes are HTML, and don't need to be wrapped. Root nodes may also be
+ *   top-level elements such as `<svg>` or `<math>`.
+ * * `svg` - The template contains only SVG content, and must be wrapped in an `<svg>` node prior to
+ *   processing.
+ * * `math` - The template contains only MathML content, and must be wrapped in an `<math>` node prior to
+ *   processing.
+ *
+ * If no `type` is specified, then the type is considered to be html.
+ *
  * #### `template`
  * replace the current element with the contents of the HTML. The replacement process
  * migrates all of the attributes / classes from the old element to the new one. See the
@@ -7492,7 +7397,8 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
   var hasDirectives = {},
       Suffix = 'Directive',
       COMMENT_DIRECTIVE_REGEXP = /^\s*directive\:\s*([\d\w\-_]+)\s+(.*)$/,
-      CLASS_DIRECTIVE_REGEXP = /(([\d\w\-_]+)(?:\:([^;]+))?;?)/;
+      CLASS_DIRECTIVE_REGEXP = /(([\d\w\-_]+)(?:\:([^;]+))?;?)/,
+      ALL_OR_NOTHING_ATTRS = makeMap('ngSrc,ngSrcset,src,srcset');
 
   // Ref: http://developers.whatwg.org/webappapis.html#event-handler-idl-attributes
   // The assumption is that future DOM event attribute names will begin with
@@ -7764,7 +7670,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
        * @param {function(interpolatedValue)} fn Function that will be called whenever
                 the interpolated value of the attribute changes.
        *        See the {@link guide/directive#Attributes Directives} guide for more info.
-       * @returns {function()} the `fn` parameter.
+       * @returns {function()} Returns a deregistration function for this observer.
        */
       $observe: function(key, fn) {
         var attrs = this,
@@ -7778,7 +7684,10 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
             fn(attrs[key]);
           }
         });
-        return fn;
+
+        return function() {
+          arrayRemove(listeners, fn);
+        };
       }
     };
 
@@ -8237,7 +8146,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
             if (jqLiteIsTextNode(directiveValue)) {
               $template = [];
             } else {
-              $template = jqLite(trim(directiveValue));
+              $template = jqLite(wrapTemplate(directive.type, trim(directiveValue)));
             }
             compileNode = $template[0];
 
@@ -8652,7 +8561,8 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
           }),
           templateUrl = (isFunction(origAsyncDirective.templateUrl))
               ? origAsyncDirective.templateUrl($compileNode, tAttrs)
-              : origAsyncDirective.templateUrl;
+              : origAsyncDirective.templateUrl,
+          type = origAsyncDirective.type;
 
       $compileNode.empty();
 
@@ -8666,7 +8576,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
             if (jqLiteIsTextNode(content)) {
               $template = [];
             } else {
-              $template = jqLite(trim(content));
+              $template = jqLite(wrapTemplate(type, trim(content)));
             }
             compileNode = $template[0];
 
@@ -8789,6 +8699,20 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
     }
 
 
+    function wrapTemplate(type, template) {
+      type = lowercase(type || 'html');
+      switch(type) {
+      case 'svg':
+      case 'math':
+        var wrapper = document.createElement('div');
+        wrapper.innerHTML = '<'+type+'>'+template+'</'+type+'>';
+        return wrapper.childNodes[0].childNodes;
+      default:
+        return template;
+      }
+    }
+
+
     function getTrustedContext(node, attrNormalizedName) {
       if (attrNormalizedName == "srcdoc") {
         return $sce.HTML;
@@ -8832,15 +8756,18 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 
                 // we need to interpolate again, in case the attribute value has been updated
                 // (e.g. by another directive's compile function)
-                interpolateFn = $interpolate(attr[name], true, getTrustedContext(node, name));
+                interpolateFn = $interpolate(attr[name], true, getTrustedContext(node, name),
+                    ALL_OR_NOTHING_ATTRS[name]);
 
                 // if attribute was updated so that there is no interpolation going on we don't want to
                 // register any observers
                 if (!interpolateFn) return;
 
-                // TODO(i): this should likely be attr.$set(name, iterpolateFn(scope) so that we reset the
-                // actual attr value
+                // initialize attr object so that it's ready in case we need the value for isolate
+                // scope initialization, otherwise the value would not be available from isolate
+                // directive's linking fn during linking phase
                 attr[name] = interpolateFn(scope);
+
                 ($$observers[name] || ($$observers[name] = [])).$$inter = true;
                 (attr.$$observers && attr.$$observers[name].$$scope || scope).
                   $watch(interpolateFn, function interpolateFnWatchAction(newValue, oldValue) {
@@ -9083,7 +9010,7 @@ function $ControllerProvider() {
         assertArgFn(expression, constructor, true);
       }
 
-      instance = $injector.instantiate(expression, locals);
+      instance = $injector.instantiate(expression, locals, constructor);
 
       if (identifier) {
         if (!(locals && typeof locals.$scope == 'object')) {
@@ -9296,12 +9223,6 @@ function $HttpProvider() {
    */
   var interceptorFactories = this.interceptors = [];
 
-  /**
-   * For historical reasons, response interceptors are ordered by the order in which
-   * they are applied to the response. (This is the opposite of interceptorFactories)
-   */
-  var responseInterceptorFactories = this.responseInterceptors = [];
-
   this.$get = ['$httpBackend', '$browser', '$cacheFactory', '$rootScope', '$q', '$injector',
       function($httpBackend, $browser, $cacheFactory, $rootScope, $q, $injector) {
 
@@ -9318,27 +9239,6 @@ function $HttpProvider() {
       reversedInterceptors.unshift(isString(interceptorFactory)
           ? $injector.get(interceptorFactory) : $injector.invoke(interceptorFactory));
     });
-
-    forEach(responseInterceptorFactories, function(interceptorFactory, index) {
-      var responseFn = isString(interceptorFactory)
-          ? $injector.get(interceptorFactory)
-          : $injector.invoke(interceptorFactory);
-
-      /**
-       * Response interceptors go before "around" interceptors (no real reason, just
-       * had to pick one.) But they are already reversed, so we can't use unshift, hence
-       * the splice.
-       */
-      reversedInterceptors.splice(index, 0, {
-        response: function(response) {
-          return responseFn($q.when(response));
-        },
-        responseError: function(response) {
-          return responseFn($q.reject(response));
-        }
-      });
-    });
-
 
     /**
      * @ngdoc service
@@ -9591,51 +9491,6 @@ function $HttpProvider() {
      *     };
      *   });
      * ```
-     *
-     * # Response interceptors (DEPRECATED)
-     *
-     * Before you start creating interceptors, be sure to understand the
-     * {@link ng.$q $q and deferred/promise APIs}.
-     *
-     * For purposes of global error handling, authentication or any kind of synchronous or
-     * asynchronous preprocessing of received responses, it is desirable to be able to intercept
-     * responses for http requests before they are handed over to the application code that
-     * initiated these requests. The response interceptors leverage the {@link ng.$q
-     * promise apis} to fulfil this need for both synchronous and asynchronous preprocessing.
-     *
-     * The interceptors are service factories that are registered with the $httpProvider by
-     * adding them to the `$httpProvider.responseInterceptors` array. The factory is called and
-     * injected with dependencies (if specified) and returns the interceptor  — a function that
-     * takes a {@link ng.$q promise} and returns the original or a new promise.
-     *
-     * ```js
-     *   // register the interceptor as a service
-     *   $provide.factory('myHttpInterceptor', function($q, dependency1, dependency2) {
-     *     return function(promise) {
-     *       return promise.then(function(response) {
-     *         // do something on success
-     *         return response;
-     *       }, function(response) {
-     *         // do something on error
-     *         if (canRecover(response)) {
-     *           return responseOrNewPromise
-     *         }
-     *         return $q.reject(response);
-     *       });
-     *     }
-     *   });
-     *
-     *   $httpProvider.responseInterceptors.push('myHttpInterceptor');
-     *
-     *
-     *   // register the interceptor via an anonymous factory
-     *   $httpProvider.responseInterceptors.push(function($q, dependency1, dependency2) {
-     *     return function(promise) {
-     *       // same as above
-     *     }
-     *   });
-     * ```
-     *
      *
      * # Security Considerations
      *
@@ -10395,18 +10250,6 @@ function createHttpBackend($browser, createXhr, $browserDefer, callbacks, rawDoc
 
     addEventListenerFn(script, "load", callback);
     addEventListenerFn(script, "error", callback);
-
-    if (msie <= 8) {
-      script.onreadystatechange = function() {
-        if (isString(script.readyState) && /loaded|complete/.test(script.readyState)) {
-          script.onreadystatechange = null;
-          callback({
-            type: 'load'
-          });
-        }
-      };
-    }
-
     rawDocument.body.appendChild(script);
     return callback;
   }
@@ -10517,6 +10360,26 @@ function $InterpolateProvider() {
      *   expect(exp({name:'Angular'}).toEqual('Hello ANGULAR!');
      * ```
      *
+     * `$interpolate` takes an optional fourth argument, `allOrNothing`. If `allOrNothing` is
+     * `true`, the interpolation function will return `undefined` unless all embedded expressions
+     * evaluate to a value other than `undefined`.
+     *
+     * ```js
+     *   var $interpolate = ...; // injected
+     *   var context = {greeting: 'Hello', name: undefined };
+     *
+     *   // default "forgiving" mode
+     *   var exp = $interpolate('{{greeting}} {{name}}!');
+     *   expect(exp(context)).toEqual('Hello !');
+     *
+     *   // "allOrNothing" mode
+     *   exp = $interpolate('{{greeting}} {{name}}!', false, null, true);
+     *   expect(exp(context, true)).toBeUndefined();
+     *   context.name = 'Angular';
+     *   expect(exp(context, true)).toEqual('Hello Angular!');
+     * ```
+     *
+     * `allOrNothing` is useful for interpolating URLs. `ngSrc` and `ngSrcset` use this behavior.
      *
      * @param {string} text The text with markup to interpolate.
      * @param {boolean=} mustHaveExpression if set to true then the interpolation string must have
@@ -10526,43 +10389,50 @@ function $InterpolateProvider() {
      *    result through {@link ng.$sce#getTrusted $sce.getTrusted(interpolatedResult,
      *    trustedContext)} before returning it.  Refer to the {@link ng.$sce $sce} service that
      *    provides Strict Contextual Escaping for details.
+     * @param {boolean=} allOrNothing if `true`, then the returned function returns undefined
+     *    unless all embedded expressions evaluate to a value other than `undefined`.
      * @returns {function(context)} an interpolation function which is used to compute the
      *    interpolated string. The function has these parameters:
      *
-     *    * `context`: an object against which any expressions embedded in the strings are evaluated
-     *      against.
-     *
+     * - `context`: evaluation context for all expressions embedded in the interpolated text
      */
-    function $interpolate(text, mustHaveExpression, trustedContext) {
+    function $interpolate(text, mustHaveExpression, trustedContext, allOrNothing) {
+      allOrNothing = !!allOrNothing;
       var startIndex,
           endIndex,
           index = 0,
-          parts = [],
-          length = text.length,
+          separators = [],
+          expressions = [],
+          parseFns = [],
+          textLength = text.length,
           hasInterpolation = false,
-          fn,
+          hasText = false,
           exp,
-          concat = [];
+          concat = [],
+          lastValuesCache = { values: {}, results: {}};
 
-      while(index < length) {
+      while(index < textLength) {
         if ( ((startIndex = text.indexOf(startSymbol, index)) != -1) &&
              ((endIndex = text.indexOf(endSymbol, startIndex + startSymbolLength)) != -1) ) {
-          (index != startIndex) && parts.push(text.substring(index, startIndex));
-          parts.push(fn = $parse(exp = text.substring(startIndex + startSymbolLength, endIndex)));
-          fn.exp = exp;
+          if (index !== startIndex) hasText = true;
+          separators.push(text.substring(index, startIndex));
+          exp = text.substring(startIndex + startSymbolLength, endIndex);
+          expressions.push(exp);
+          parseFns.push($parse(exp));
           index = endIndex + endSymbolLength;
           hasInterpolation = true;
         } else {
-          // we did not find anything, so we have to add the remainder to the parts array
-          (index != length) && parts.push(text.substring(index));
-          index = length;
+          // we did not find an interpolation, so we have to add the remainder to the separators array
+          if (index !== textLength) {
+            hasText = true;
+            separators.push(text.substring(index));
+          }
+          break;
         }
       }
 
-      if (!(length = parts.length)) {
-        // we added, nothing, must have been an empty string.
-        parts.push('');
-        length = 1;
+      if (separators.length === expressions.length) {
+        separators.push('');
       }
 
       // Concatenating expressions makes it hard to reason about whether some combination of
@@ -10571,44 +10441,101 @@ function $InterpolateProvider() {
       // that's used is assigned or constructed by some JS code somewhere that is more testable or
       // make it obvious that you bound the value to some user controlled value.  This helps reduce
       // the load when auditing for XSS issues.
-      if (trustedContext && parts.length > 1) {
+      if (trustedContext && hasInterpolation && (hasText || expressions.length > 1)) {
           throw $interpolateMinErr('noconcat',
               "Error while interpolating: {0}\nStrict Contextual Escaping disallows " +
               "interpolations that concatenate multiple expressions when a trusted value is " +
               "required.  See http://docs.angularjs.org/api/ng.$sce", text);
       }
 
-      if (!mustHaveExpression  || hasInterpolation) {
-        concat.length = length;
-        fn = function(context) {
-          try {
-            for(var i = 0, ii = length, part; i<ii; i++) {
-              if (typeof (part = parts[i]) == 'function') {
-                part = part(context);
-                if (trustedContext) {
-                  part = $sce.getTrusted(trustedContext, part);
-                } else {
-                  part = $sce.valueOf(part);
-                }
-                if (part === null || isUndefined(part)) {
-                  part = '';
-                } else if (typeof part != 'string') {
-                  part = toJson(part);
-                }
-              }
-              concat[i] = part;
-            }
-            return concat.join('');
+      if (!mustHaveExpression || hasInterpolation) {
+        concat.length = separators.length + expressions.length;
+
+        var compute = function(values) {
+          for(var i = 0, ii = expressions.length; i < ii; i++) {
+            concat[2*i] = separators[i];
+            concat[(2*i)+1] = values[i];
           }
-          catch(err) {
-            var newErr = $interpolateMinErr('interr', "Can't interpolate: {0}\n{1}", text,
-                err.toString());
-            $exceptionHandler(newErr);
-          }
+          concat[2*ii] = separators[ii];
+          return concat.join('');
         };
-        fn.exp = text;
-        fn.parts = parts;
-        return fn;
+
+        var getValue = function (value) {
+          if (trustedContext) {
+            value = $sce.getTrusted(trustedContext, value);
+          } else {
+            value = $sce.valueOf(value);
+          }
+
+          return value;
+        };
+
+        var stringify = function (value) {
+          if (isUndefined(value) || value === null) {
+            value = '';
+          }
+          if (typeof value != 'string') {
+            value = toJson(value);
+          }
+
+          return value;
+        };
+
+        return extend(function interpolationFn(context) {
+            var scopeId = (context && context.$id) || 'notAScope';
+            var lastValues = lastValuesCache.values[scopeId];
+            var lastResult = lastValuesCache.results[scopeId];
+            var i = 0;
+            var ii = expressions.length;
+            var values = new Array(ii);
+            var val;
+            var inputsChanged = lastResult === undefined ? true: false;
+
+
+            // if we haven't seen this context before, initialize the cache and try to setup
+            // a cleanup routine that purges the cache when the scope goes away.
+            if (!lastValues) {
+              lastValues = [];
+              inputsChanged = true;
+              if (context && context.$on) {
+                context.$on('$destroy', function() {
+                  lastValuesCache.values[scopeId] = null;
+                  lastValuesCache.results[scopeId] = null;
+                });
+              }
+            }
+
+
+            try {
+              for (; i < ii; i++) {
+                val = getValue(parseFns[i](context));
+                if (allOrNothing && isUndefined(val)) {
+                  return;
+                }
+                val = stringify(val);
+                if (val !== lastValues[i]) {
+                  inputsChanged = true;
+                }
+                values[i] = val;
+              }
+
+              if (inputsChanged) {
+                lastValuesCache.values[scopeId] = values;
+                lastValuesCache.results[scopeId] = lastResult = compute(values);
+              }
+            } catch(err) {
+              var newErr = $interpolateMinErr('interr', "Can't interpolate: {0}\n{1}", text,
+                  err.toString());
+              $exceptionHandler(newErr);
+            }
+
+            return lastResult;
+          }, {
+          // all of these properties are undocumented for now
+          exp: text, //just for compatibility with regular watchers created via $watch
+          separators: separators,
+          expressions: expressions
+        });
       }
     }
 
@@ -10754,7 +10681,7 @@ function $IntervalProvider() {
       *
       *             // listen on DOM destroy (removal) event, and cancel the next UI update
       *             // to prevent updating time ofter the DOM element was removed.
-      *             element.bind('$destroy', function() {
+      *             element.on('$destroy', function() {
       *               $interval.cancel(stopTime);
       *             });
       *           }
@@ -14009,6 +13936,58 @@ function $RootScopeProvider(){
         };
       },
 
+      /**
+       * @ngdoc method
+       * @name $rootScope.Scope#$watchGroup
+       * @function
+       *
+       * @description
+       * A variant of {@link ng.$rootScope.Scope#$watch $watch()} where it watches an array of `watchExpressions`.
+       * If any one expression in the collection changes the `listener` is executed.
+       *
+       * - The items in the `watchCollection` array are observed via standard $watch operation and are examined on every
+       *   call to $digest() to see if any items changes.
+       * - The `listener` is called whenever any expression in the `watchExpressions` array changes.
+       *
+       * @param {Array.<string|Function(scope)>} watchExpressions Array of expressions that will be individually
+       * watched using {@link ng.$rootScope.Scope#$watch $watch()}
+       *
+       * @param {function(newValues, oldValues, scope)} listener Callback called whenever the return value of any
+       *    expression in `watchExpressions` changes
+       *    The `newValues` array contains the current values of the `watchExpressions`, with the indexes matching
+       *    those of `watchExpression`
+       *    and the `oldValues` array contains the previous values of the `watchExpressions`, with the indexes matching
+       *    those of `watchExpression`
+       *    The `scope` refers to the current scope.
+       *
+       * @returns {function()} Returns a de-registration function for all listeners.
+       */
+      $watchGroup: function(watchExpressions, listener) {
+        var oldValues = new Array(watchExpressions.length);
+        var newValues = new Array(watchExpressions.length);
+        var deregisterFns = [];
+        var changeCount = 0;
+        var self = this;
+
+        forEach(watchExpressions, function (expr, i) {
+          deregisterFns.push(self.$watch(expr, function (value, oldValue) {
+            newValues[i] = value;
+            oldValues[i] = oldValue;
+            changeCount++;
+          }));
+        }, this);
+
+        deregisterFns.push(self.$watch(function () {return changeCount;}, function () {
+          listener(newValues, oldValues, self);
+        }));
+
+        return function deregisterWatchGroup() {
+          forEach(deregisterFns, function (fn) {
+            fn();
+          });
+        };
+      },
+
 
       /**
        * @ngdoc method
@@ -14203,7 +14182,7 @@ function $RootScopeProvider(){
        * {@link ng.directive:ngController controllers} or in
        * {@link ng.$compileProvider#directive directives}.
        * Instead, you should call {@link ng.$rootScope.Scope#$apply $apply()} (typically from within
-       * a {@link ng.$compileProvider#directive directives}), which will force a `$digest()`.
+       * a {@link ng.$compileProvider#directive directive}), which will force a `$digest()`.
        *
        * If you want to be notified whenever `$digest()` is called,
        * you can register a `watchExpression` function with
@@ -14411,7 +14390,7 @@ function $RootScopeProvider(){
 
         // prevent NPEs since these methods have references to properties we nulled out
         this.$destroy = this.$digest = this.$apply = noop;
-        this.$on = this.$watch = function() { return noop; };
+        this.$on = this.$watch = this.$watchGroup = function() { return noop; };
       },
 
       /**
@@ -14791,7 +14770,7 @@ function $RootScopeProvider(){
  */
 function $$SanitizeUriProvider() {
   var aHrefSanitizationWhitelist = /^\s*(https?|ftp|mailto|tel|file):/,
-    imgSrcSanitizationWhitelist = /^\s*(https?|ftp|file):|data:image\//;
+    imgSrcSanitizationWhitelist = /^\s*(https?|ftp|file|blob):|data:image\//;
 
   /**
    * @description
@@ -15350,7 +15329,7 @@ function $SceDelegateProvider() {
  * won't work on all browsers.  Also, loading templates from `file://` URL does not work on some
  * browsers.
  *
- * ## This feels like too much overhead for the developer?
+ * ## This feels like too much overhead
  *
  * It's important to remember that SCE only applies to interpolation expressions.
  *
@@ -16820,6 +16799,32 @@ function timeZoneGetter(date) {
   return paddedZone;
 }
 
+function getFirstThursdayOfYear(year) {
+    // 0 = index of January
+    var dayOfWeekOnFirst = (new Date(year, 0, 1)).getDay();
+    // 4 = index of Thursday (+1 to account for 1st = 5)
+    // 11 = index of *next* Thursday (+1 account for 1st = 12)
+    return new Date(year, 0, ((dayOfWeekOnFirst <= 4) ? 5 : 12) - dayOfWeekOnFirst);
+}
+
+function getThursdayThisWeek(datetime) {
+    return new Date(datetime.getFullYear(), datetime.getMonth(),
+      // 4 = index of Thursday
+      datetime.getDate() + (4 - datetime.getDay()));
+}
+
+function weekGetter(size) {
+   return function(date) {
+      var firstThurs = getFirstThursdayOfYear(date.getFullYear()),
+         thisThurs = getThursdayThisWeek(date);
+
+      var diff = +thisThurs - +firstThurs,
+         result = 1 + Math.round(diff / 6.048e8); // 6.048e8 ms per week
+
+      return padNumber(result, size);
+   };
+}
+
 function ampmGetter(date, formats) {
   return date.getHours() < 12 ? formats.AMPMS[0] : formats.AMPMS[1];
 }
@@ -16848,10 +16853,12 @@ var DATE_FORMATS = {
   EEEE: dateStrGetter('Day'),
    EEE: dateStrGetter('Day', true),
      a: ampmGetter,
-     Z: timeZoneGetter
+     Z: timeZoneGetter,
+    ww: weekGetter(2),
+     w: weekGetter(1)
 };
 
-var DATE_FORMATS_SPLIT = /((?:[^yMdHhmsaZE']+)|(?:'(?:[^']|'')*')|(?:E+|y+|M+|d+|H+|h+|m+|s+|a|Z))(.*)/,
+var DATE_FORMATS_SPLIT = /((?:[^yMdHhmsaZEw']+)|(?:'(?:[^']|'')*')|(?:E+|y+|M+|d+|H+|h+|m+|s+|a|Z|w+))(.*)/,
     NUMBER_STRING = /^\-?\d+$/;
 
 /**
@@ -16886,6 +16893,8 @@ var DATE_FORMATS_SPLIT = /((?:[^yMdHhmsaZE']+)|(?:'(?:[^']|'')*')|(?:E+|y+|M+|d+
  *   * `'.sss' or ',sss'`: Millisecond in second, padded (000-999)
  *   * `'a'`: am/pm marker
  *   * `'Z'`: 4 digit (+sign) representation of the timezone offset (-1200-+1200)
+ *   * `'ww'`: ISO-8601 week of year (00-53)
+ *   * `'w'`: ISO-8601 week of year (0-53)
  *
  *   `format` string can also be one of the following predefined
  *   {@link guide/i18n localizable formats}:
@@ -16893,7 +16902,7 @@ var DATE_FORMATS_SPLIT = /((?:[^yMdHhmsaZE']+)|(?:'(?:[^']|'')*')|(?:E+|y+|M+|d+
  *   * `'medium'`: equivalent to `'MMM d, y h:mm:ss a'` for en_US locale
  *     (e.g. Sep 3, 2010 12:05:08 pm)
  *   * `'short'`: equivalent to `'M/d/yy h:mm a'` for en_US  locale (e.g. 9/3/10 12:05 pm)
- *   * `'fullDate'`: equivalent to `'EEEE, MMMM d,y'` for en_US  locale
+ *   * `'fullDate'`: equivalent to `'EEEE, MMMM d, y'` for en_US  locale
  *     (e.g. Friday, September 3, 2010)
  *   * `'longDate'`: equivalent to `'MMMM d, y'` for en_US  locale (e.g. September 3, 2010)
  *   * `'mediumDate'`: equivalent to `'MMM d, y'` for en_US  locale (e.g. Sep 3, 2010)
@@ -18190,6 +18199,12 @@ var ngFormDirective = formDirectiveFactory(true);
 var URL_REGEXP = /^(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?$/;
 var EMAIL_REGEXP = /^[a-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-z0-9-]+(\.[a-z0-9-]+)*$/i;
 var NUMBER_REGEXP = /^\s*(\-|\+)?(\d+|(\d*(\.\d*)))\s*$/;
+var DATE_REGEXP = /^(\d{4})-(\d{2})-(\d{2})$/;
+var DATETIMELOCAL_REGEXP = /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d)$/;
+var WEEK_REGEXP = /^(\d{4})-W(\d\d)$/;
+var MONTH_REGEXP = /^(\d{4})-(\d\d)$/;
+var TIME_REGEXP = /^(\d\d):(\d\d)$/;
+var DEFAULT_REGEXP = /(\b|^)default(\b|$)/;
 
 var inputType = {
 
@@ -18270,6 +18285,425 @@ var inputType = {
    */
   'text': textInputType,
 
+    /**
+     * @ngdoc input
+     * @name input[date]
+     *
+     * @description
+     * Input with date validation and transformation. In browsers that do not yet support
+     * the HTML5 date input, a text element will be used. In that case, text must be entered in a valid ISO-8601
+     * date format (yyyy-MM-dd), for example: `2009-01-06`. The model must always be a Date object.
+     *
+     * @param {string} ngModel Assignable angular expression to data-bind to.
+     * @param {string=} name Property name of the form under which the control is published.
+     * @param {string=} min Sets the `min` validation error key if the value entered is less than `min`. This must be a
+     * valid ISO date string (yyyy-MM-dd).
+     * @param {string=} max Sets the `max` validation error key if the value entered is greater than `max`. This must be
+     * a valid ISO date string (yyyy-MM-dd).
+     * @param {string=} required Sets `required` validation error key if the value is not entered.
+     * @param {string=} ngRequired Adds `required` attribute and `required` validation constraint to
+     *    the element when the ngRequired expression evaluates to true. Use `ngRequired` instead of
+     *    `required` when you want to data-bind to the `required` attribute.
+     * @param {string=} ngChange Angular expression to be executed when input changes due to user
+     *    interaction with the input element.
+     *
+     * @example
+     <example name="date-input-directive">
+     <file name="index.html">
+       <script>
+          function Ctrl($scope) {
+            $scope.value = new Date(2013, 9, 22);
+          }
+       </script>
+       <form name="myForm" ng-controller="Ctrl as dateCtrl">
+          Pick a date between in 2013:
+          <input type="date" id="exampleInput" name="input" ng-model="value"
+              placeholder="yyyy-MM-dd" min="2013-01-01" max="2013-12-31" required />
+          <span class="error" ng-show="myForm.input.$error.required">
+              Required!</span>
+          <span class="error" ng-show="myForm.input.$error.date">
+              Not a valid date!</span>
+           <tt>value = {{value | date: "yyyy-MM-dd"}}</tt><br/>
+           <tt>myForm.input.$valid = {{myForm.input.$valid}}</tt><br/>
+           <tt>myForm.input.$error = {{myForm.input.$error}}</tt><br/>
+           <tt>myForm.$valid = {{myForm.$valid}}</tt><br/>
+           <tt>myForm.$error.required = {{!!myForm.$error.required}}</tt><br/>
+       </form>
+     </file>
+     <file name="protractor.js" type="protractor">
+        var value = element(by.binding('value | date: "yyyy-MM-dd"'));
+        var valid = element(by.binding('myForm.input.$valid'));
+        var input = element(by.model('value'));
+
+        // currently protractor/webdriver does not support
+        // sending keys to all known HTML5 input controls
+        // for various browsers (see https://github.com/angular/protractor/issues/562).
+        function setInput(val) {
+          // set the value of the element and force validation.
+          var scr = "var ipt = document.getElementById('exampleInput'); " +
+          "ipt.value = '" + val + "';" +
+          "angular.element(ipt).scope().$apply(function(s) { s.myForm[ipt.name].$setViewValue('" + val + "'); });";
+          browser.executeScript(scr);
+        }
+
+        it('should initialize to model', function() {
+          expect(value.getText()).toContain('2013-10-22');
+          expect(valid.getText()).toContain('myForm.input.$valid = true');
+        });
+
+        it('should be invalid if empty', function() {
+          setInput('');
+          expect(value.getText()).toEqual('value =');
+          expect(valid.getText()).toContain('myForm.input.$valid = false');
+        });
+
+        it('should be invalid if over max', function() {
+          setInput('2015-01-01');
+          expect(value.getText()).toContain('');
+          expect(valid.getText()).toContain('myForm.input.$valid = false');
+        });
+     </file>
+     </example>f
+     */
+  'date': createDateInputType('date', DATE_REGEXP,
+         createDateParser(DATE_REGEXP, ['yyyy', 'MM', 'dd']),
+         'yyyy-MM-dd'),
+
+   /**
+    * @ngdoc input
+    * @name input[dateTimeLocal]
+    *
+    * @description
+    * Input with datetime validation and transformation. In browsers that do not yet support
+    * the HTML5 date input, a text element will be used. In that case, the text must be entered in a valid ISO-8601
+    * local datetime format (yyyy-MM-ddTHH:mm), for example: `2010-12-28T14:57`. The model must be a Date object.
+    *
+    * @param {string} ngModel Assignable angular expression to data-bind to.
+    * @param {string=} name Property name of the form under which the control is published.
+    * @param {string=} min Sets the `min` validation error key if the value entered is less than `min`. This must be a
+    * valid ISO datetime format (yyyy-MM-ddTHH:mm).
+    * @param {string=} max Sets the `max` validation error key if the value entered is greater than `max`. This must be
+    * a valid ISO datetime format (yyyy-MM-ddTHH:mm).
+    * @param {string=} required Sets `required` validation error key if the value is not entered.
+    * @param {string=} ngRequired Adds `required` attribute and `required` validation constraint to
+    *    the element when the ngRequired expression evaluates to true. Use `ngRequired` instead of
+    *    `required` when you want to data-bind to the `required` attribute.
+    * @param {string=} ngChange Angular expression to be executed when input changes due to user
+    *    interaction with the input element.
+    *
+    * @example
+    <example name="datetimelocal-input-directive">
+    <file name="index.html">
+      <script>
+        function Ctrl($scope) {
+          $scope.value = new Date(2010, 11, 28, 14, 57);
+        }
+      </script>
+      <form name="myForm" ng-controller="Ctrl as dateCtrl">
+        Pick a date between in 2013:
+        <input type="datetime-local" id="exampleInput" name="input" ng-model="value"
+            placeholder="yyyy-MM-ddTHH:mm" min="2001-01-01T00:00" max="2013-12-31T00:00" required />
+        <span class="error" ng-show="myForm.input.$error.required">
+            Required!</span>
+        <span class="error" ng-show="myForm.input.$error.datetimelocal">
+            Not a valid date!</span>
+        <tt>value = {{value | date: "yyyy-MM-ddTHH:mm"}}</tt><br/>
+        <tt>myForm.input.$valid = {{myForm.input.$valid}}</tt><br/>
+        <tt>myForm.input.$error = {{myForm.input.$error}}</tt><br/>
+        <tt>myForm.$valid = {{myForm.$valid}}</tt><br/>
+        <tt>myForm.$error.required = {{!!myForm.$error.required}}</tt><br/>
+      </form>
+    </file>
+    <file name="protractor.js" type="protractor">
+      var value = element(by.binding('value | date: "yyyy-MM-ddTHH:mm"'));
+      var valid = element(by.binding('myForm.input.$valid'));
+      var input = element(by.model('value'));
+
+      // currently protractor/webdriver does not support
+      // sending keys to all known HTML5 input controls
+      // for various browsers (https://github.com/angular/protractor/issues/562).
+      function setInput(val) {
+        // set the value of the element and force validation.
+        var scr = "var ipt = document.getElementById('exampleInput'); " +
+        "ipt.value = '" + val + "';" +
+        "angular.element(ipt).scope().$apply(function(s) { s.myForm[ipt.name].$setViewValue('" + val + "'); });";
+        browser.executeScript(scr);
+      }
+
+      it('should initialize to model', function() {
+        expect(value.getText()).toContain('2010-12-28T14:57');
+        expect(valid.getText()).toContain('myForm.input.$valid = true');
+      });
+
+      it('should be invalid if empty', function() {
+        setInput('');
+        expect(value.getText()).toEqual('value =');
+        expect(valid.getText()).toContain('myForm.input.$valid = false');
+      });
+
+      it('should be invalid if over max', function() {
+        setInput('2015-01-01T23:59');
+        expect(value.getText()).toContain('');
+        expect(valid.getText()).toContain('myForm.input.$valid = false');
+      });
+    </file>
+    </example>
+    */
+  'datetime-local': createDateInputType('datetimelocal', DATETIMELOCAL_REGEXP,
+      createDateParser(DATETIMELOCAL_REGEXP, ['yyyy', 'MM', 'dd', 'HH', 'mm']),
+      'yyyy-MM-ddTHH:mm'),
+
+  /**
+   * @ngdoc input
+   * @name input[time]
+   *
+   * @description
+   * Input with time validation and transformation. In browsers that do not yet support
+   * the HTML5 date input, a text element will be used. In that case, the text must be entered in a valid ISO-8601
+   * local time format (HH:mm), for example: `14:57`. Model must be a Date object. This binding will always output a
+   * Date object to the model of January 1, 1900, or local date `new Date(0, 0, 1, HH, mm)`.
+   *
+   * @param {string} ngModel Assignable angular expression to data-bind to.
+   * @param {string=} name Property name of the form under which the control is published.
+   * @param {string=} min Sets the `min` validation error key if the value entered is less than `min`. This must be a
+   * valid ISO time format (HH:mm).
+   * @param {string=} max Sets the `max` validation error key if the value entered is greater than `max`. This must be a
+   * valid ISO time format (HH:mm).
+   * @param {string=} required Sets `required` validation error key if the value is not entered.
+   * @param {string=} ngRequired Adds `required` attribute and `required` validation constraint to
+   *    the element when the ngRequired expression evaluates to true. Use `ngRequired` instead of
+   *    `required` when you want to data-bind to the `required` attribute.
+   * @param {string=} ngChange Angular expression to be executed when input changes due to user
+   *    interaction with the input element.
+   *
+   * @example
+   <example name="time-input-directive">
+   <file name="index.html">
+     <script>
+      function Ctrl($scope) {
+        $scope.value = new Date(0, 0, 1, 14, 57);
+      }
+     </script>
+     <form name="myForm" ng-controller="Ctrl as dateCtrl">
+        Pick a between 8am and 5pm:
+        <input type="time" id="exampleInput" name="input" ng-model="value"
+            placeholder="HH:mm" min="08:00" max="17:00" required />
+        <span class="error" ng-show="myForm.input.$error.required">
+            Required!</span>
+        <span class="error" ng-show="myForm.input.$error.time">
+            Not a valid date!</span>
+        <tt>value = {{value | date: "HH:mm"}}</tt><br/>
+        <tt>myForm.input.$valid = {{myForm.input.$valid}}</tt><br/>
+        <tt>myForm.input.$error = {{myForm.input.$error}}</tt><br/>
+        <tt>myForm.$valid = {{myForm.$valid}}</tt><br/>
+        <tt>myForm.$error.required = {{!!myForm.$error.required}}</tt><br/>
+     </form>
+   </file>
+   <file name="protractor.js" type="protractor">
+      var value = element(by.binding('value | date: "HH:mm"'));
+      var valid = element(by.binding('myForm.input.$valid'));
+      var input = element(by.model('value'));
+
+      // currently protractor/webdriver does not support
+      // sending keys to all known HTML5 input controls
+      // for various browsers (https://github.com/angular/protractor/issues/562).
+      function setInput(val) {
+        // set the value of the element and force validation.
+        var scr = "var ipt = document.getElementById('exampleInput'); " +
+        "ipt.value = '" + val + "';" +
+        "angular.element(ipt).scope().$apply(function(s) { s.myForm[ipt.name].$setViewValue('" + val + "'); });";
+        browser.executeScript(scr);
+      }
+
+      it('should initialize to model', function() {
+        expect(value.getText()).toContain('14:57');
+        expect(valid.getText()).toContain('myForm.input.$valid = true');
+      });
+
+      it('should be invalid if empty', function() {
+        setInput('');
+        expect(value.getText()).toEqual('value =');
+        expect(valid.getText()).toContain('myForm.input.$valid = false');
+      });
+
+      it('should be invalid if over max', function() {
+        setInput('23:59');
+        expect(value.getText()).toContain('');
+        expect(valid.getText()).toContain('myForm.input.$valid = false');
+      });
+   </file>
+   </example>
+   */
+  'time': createDateInputType('time', TIME_REGEXP,
+      createDateParser(TIME_REGEXP, ['HH', 'mm']),
+     'HH:mm'),
+
+   /**
+    * @ngdoc input
+    * @name input[week]
+    *
+    * @description
+    * Input with week-of-the-year validation and transformation to Date. In browsers that do not yet support
+    * the HTML5 week input, a text element will be used. In that case, the text must be entered in a valid ISO-8601
+    * week format (yyyy-W##), for example: `2013-W02`. The model must always be a Date object.
+    *
+    * @param {string} ngModel Assignable angular expression to data-bind to.
+    * @param {string=} name Property name of the form under which the control is published.
+    * @param {string=} min Sets the `min` validation error key if the value entered is less than `min`. This must be a
+    * valid ISO week format (yyyy-W##).
+    * @param {string=} max Sets the `max` validation error key if the value entered is greater than `max`. This must be
+    * a valid ISO week format (yyyy-W##).
+    * @param {string=} required Sets `required` validation error key if the value is not entered.
+    * @param {string=} ngRequired Adds `required` attribute and `required` validation constraint to
+    *    the element when the ngRequired expression evaluates to true. Use `ngRequired` instead of
+    *    `required` when you want to data-bind to the `required` attribute.
+    * @param {string=} ngChange Angular expression to be executed when input changes due to user
+    *    interaction with the input element.
+    *
+    * @example
+    <example name="week-input-directive">
+    <file name="index.html">
+      <script>
+      function Ctrl($scope) {
+        $scope.value = new Date(2013, 0, 3);
+      }
+      </script>
+      <form name="myForm" ng-controller="Ctrl as dateCtrl">
+        Pick a date between in 2013:
+        <input id="exampleInput" type="week" name="input" ng-model="value"
+            placeholder="YYYY-W##" min="2012-W32" max="2013-W52" required />
+        <span class="error" ng-show="myForm.input.$error.required">
+            Required!</span>
+        <span class="error" ng-show="myForm.input.$error.week">
+            Not a valid date!</span>
+        <tt>value = {{value | date: "yyyy-Www"}}</tt><br/>
+        <tt>myForm.input.$valid = {{myForm.input.$valid}}</tt><br/>
+        <tt>myForm.input.$error = {{myForm.input.$error}}</tt><br/>
+        <tt>myForm.$valid = {{myForm.$valid}}</tt><br/>
+        <tt>myForm.$error.required = {{!!myForm.$error.required}}</tt><br/>
+      </form>
+    </file>
+    <file name="protractor.js" type="protractor">
+      var value = element(by.binding('value | date: "yyyy-Www"'));
+      var valid = element(by.binding('myForm.input.$valid'));
+      var input = element(by.model('value'));
+
+      // currently protractor/webdriver does not support
+      // sending keys to all known HTML5 input controls
+      // for various browsers (https://github.com/angular/protractor/issues/562).
+      function setInput(val) {
+        // set the value of the element and force validation.
+        var scr = "var ipt = document.getElementById('exampleInput'); " +
+        "ipt.value = '" + val + "';" +
+        "angular.element(ipt).scope().$apply(function(s) { s.myForm[ipt.name].$setViewValue('" + val + "'); });";
+        browser.executeScript(scr);
+      }
+
+      it('should initialize to model', function() {
+        expect(value.getText()).toContain('2013-W01');
+        expect(valid.getText()).toContain('myForm.input.$valid = true');
+      });
+
+      it('should be invalid if empty', function() {
+        setInput('');
+        expect(value.getText()).toEqual('value =');
+        expect(valid.getText()).toContain('myForm.input.$valid = false');
+      });
+
+      it('should be invalid if over max', function() {
+        setInput('2015-W01');
+        expect(value.getText()).toContain('');
+        expect(valid.getText()).toContain('myForm.input.$valid = false');
+      });
+    </file>
+    </example>
+    */
+  'week': createDateInputType('week', WEEK_REGEXP, weekParser, 'yyyy-Www'),
+
+  /**
+   * @ngdoc input
+   * @name input[month]
+   *
+   * @description
+   * Input with month validation and transformation. In browsers that do not yet support
+   * the HTML5 month input, a text element will be used. In that case, the text must be entered in a valid ISO-8601
+   * month format (yyyy-MM), for example: `2009-01`. The model must always be a Date object. In the event the model is
+   * not set to the first of the month, the first of that model's month is assumed.
+   *
+   * @param {string} ngModel Assignable angular expression to data-bind to.
+   * @param {string=} name Property name of the form under which the control is published.
+   * @param {string=} min Sets the `min` validation error key if the value entered is less than `min`. This must be
+   * a valid ISO month format (yyyy-MM).
+   * @param {string=} max Sets the `max` validation error key if the value entered is greater than `max`. This must
+   * be a valid ISO month format (yyyy-MM).
+   * @param {string=} required Sets `required` validation error key if the value is not entered.
+   * @param {string=} ngRequired Adds `required` attribute and `required` validation constraint to
+   *    the element when the ngRequired expression evaluates to true. Use `ngRequired` instead of
+   *    `required` when you want to data-bind to the `required` attribute.
+   * @param {string=} ngChange Angular expression to be executed when input changes due to user
+   *    interaction with the input element.
+   *
+   * @example
+   <example name="month-input-directive">
+   <file name="index.html">
+     <script>
+      function Ctrl($scope) {
+        $scope.value = new Date(2013, 9, 1);
+      }
+     </script>
+     <form name="myForm" ng-controller="Ctrl as dateCtrl">
+       Pick a month int 2013:
+       <input id="exampleInput" type="month" name="input" ng-model="value"
+          placeholder="yyyy-MM" min="2013-01" max="2013-12" required />
+       <span class="error" ng-show="myForm.input.$error.required">
+          Required!</span>
+       <span class="error" ng-show="myForm.input.$error.month">
+          Not a valid month!</span>
+       <tt>value = {{value | date: "yyyy-MM"}}</tt><br/>
+       <tt>myForm.input.$valid = {{myForm.input.$valid}}</tt><br/>
+       <tt>myForm.input.$error = {{myForm.input.$error}}</tt><br/>
+       <tt>myForm.$valid = {{myForm.$valid}}</tt><br/>
+       <tt>myForm.$error.required = {{!!myForm.$error.required}}</tt><br/>
+     </form>
+   </file>
+   <file name="protractor.js" type="protractor">
+      var value = element(by.binding('value | date: "yyyy-MM"'));
+      var valid = element(by.binding('myForm.input.$valid'));
+      var input = element(by.model('value'));
+
+      // currently protractor/webdriver does not support
+      // sending keys to all known HTML5 input controls
+      // for various browsers (https://github.com/angular/protractor/issues/562).
+      function setInput(val) {
+        // set the value of the element and force validation.
+        var scr = "var ipt = document.getElementById('exampleInput'); " +
+        "ipt.value = '" + val + "';" +
+        "angular.element(ipt).scope().$apply(function(s) { s.myForm[ipt.name].$setViewValue('" + val + "'); });";
+        browser.executeScript(scr);
+      }
+
+      it('should initialize to model', function() {
+        expect(value.getText()).toContain('2013-10');
+        expect(valid.getText()).toContain('myForm.input.$valid = true');
+      });
+
+      it('should be invalid if empty', function() {
+        setInput('');
+        expect(value.getText()).toEqual('value =');
+        expect(valid.getText()).toContain('myForm.input.$valid = false');
+      });
+
+      it('should be invalid if over max', function() {
+        setInput('2015-01');
+        expect(value.getText()).toContain('');
+        expect(valid.getText()).toContain('myForm.input.$valid = false');
+      });
+   </file>
+   </example>
+   */
+  'month': createDateInputType('month', MONTH_REGEXP,
+     createDateParser(MONTH_REGEXP, ['yyyy', 'MM']),
+     'yyyy-MM'),
 
   /**
    * @ngdoc input
@@ -18654,7 +19088,8 @@ function textInputType(scope, element, attr, ctrl, $sniffer, $browser) {
 
   var listener = function(ev) {
     if (composing) return;
-    var value = element.val();
+    var value = element.val(),
+        event = ev && ev.type;
 
     // IE (11 and under) seem to emit an 'input' event if the placeholder value changes.
     // We don't want to dirty the value when this happens, so we abort here. Unfortunately,
@@ -18678,50 +19113,59 @@ function textInputType(scope, element, attr, ctrl, $sniffer, $browser) {
         // even when the first character entered causes an error.
         (validity && value === '' && !validity.valueMissing)) {
       if (scope.$$phase) {
-        ctrl.$setViewValue(value);
+        ctrl.$setViewValue(value, event);
       } else {
         scope.$apply(function() {
-          ctrl.$setViewValue(value);
+          ctrl.$setViewValue(value, event);
         });
       }
     }
   };
 
-  // if the browser does support "input" event, we are fine - except on IE9 which doesn't fire the
-  // input event on backspace, delete or cut
-  if ($sniffer.hasEvent('input')) {
-    element.on('input', listener);
-  } else {
-    var timeout;
-
-    var deferListener = function() {
-      if (!timeout) {
-        timeout = $browser.defer(function() {
-          listener();
-          timeout = null;
-        });
-      }
-    };
-
-    element.on('keydown', function(event) {
-      var key = event.keyCode;
-
-      // ignore
-      //    command            modifiers                   arrows
-      if (key === 91 || (15 < key && key < 19) || (37 <= key && key <= 40)) return;
-
-      deferListener();
-    });
-
-    // if user modifies input value using context menu in IE, we need "paste" and "cut" events to catch it
-    if ($sniffer.hasEvent('paste')) {
-      element.on('paste cut', deferListener);
-    }
+  // Allow adding/overriding bound events
+  if (ctrl.$options && ctrl.$options.updateOn) {
+    // bind to user-defined events
+    element.on(ctrl.$options.updateOn, listener);
   }
 
-  // if user paste into input using mouse on older browser
-  // or form autocomplete on newer browser, we need "change" event to catch it
-  element.on('change', listener);
+  // setup default events if requested
+  if (!ctrl.$options || ctrl.$options.updateOnDefault) {
+    // if the browser does support "input" event, we are fine - except on IE9 which doesn't fire the
+    // input event on backspace, delete or cut
+    if ($sniffer.hasEvent('input')) {
+      element.on('input', listener);
+    } else {
+      var timeout;
+
+      var deferListener = function(ev) {
+        if (!timeout) {
+          timeout = $browser.defer(function() {
+            listener(ev);
+            timeout = null;
+          });
+        }
+      };
+
+      element.on('keydown', function(event) {
+        var key = event.keyCode;
+
+        // ignore
+        //    command            modifiers                   arrows
+        if (key === 91 || (15 < key && key < 19) || (37 <= key && key <= 40)) return;
+
+        deferListener(event);
+      });
+
+      // if user modifies input value using context menu in IE, we need "paste" and "cut" events to catch it
+      if ($sniffer.hasEvent('paste')) {
+        element.on('paste cut', deferListener);
+      }
+    }
+
+    // if user paste into input using mouse on older browser
+    // or form autocomplete on newer browser, we need "change" event to catch it
+    element.on('change', listener);
+  }
 
   ctrl.$render = function() {
     element.val(ctrl.$isEmpty(ctrl.$viewValue) ? '' : ctrl.$viewValue);
@@ -18780,6 +19224,108 @@ function textInputType(scope, element, attr, ctrl, $sniffer, $browser) {
     ctrl.$parsers.push(maxLengthValidator);
     ctrl.$formatters.push(maxLengthValidator);
   }
+}
+
+function weekParser(isoWeek) {
+   if(isDate(isoWeek)) {
+      return isoWeek;
+   }
+
+   if(isString(isoWeek)) {
+      WEEK_REGEXP.lastIndex = 0;
+      var parts = WEEK_REGEXP.exec(isoWeek);
+      if(parts) {
+         var year = +parts[1],
+            week = +parts[2],
+            firstThurs = getFirstThursdayOfYear(year),
+            addDays = (week - 1) * 7;
+         return new Date(year, 0, firstThurs.getDate() + addDays);
+      }
+   }
+
+   return NaN;
+}
+
+function createDateParser(regexp, mapping) {
+   return function(iso) {
+      var parts, map;
+
+      if(isDate(iso)) {
+         return iso;
+      }
+
+      if(isString(iso)) {
+         regexp.lastIndex = 0;
+         parts = regexp.exec(iso);
+
+         if(parts) {
+            parts.shift();
+            map = { yyyy: 0, MM: 1, dd: 1, HH: 0, mm: 0 };
+
+            forEach(parts, function(part, index) {
+               if(index < mapping.length) {
+                  map[mapping[index]] = +part;
+               }
+            });
+
+            return new Date(map.yyyy, map.MM - 1, map.dd, map.HH, map.mm);
+         }
+      }
+
+      return NaN;
+   };
+}
+
+function createDateInputType(type, regexp, parseDate, format) {
+   return function dynamicDateInputType(scope, element, attr, ctrl, $sniffer, $browser, $filter) {
+      textInputType(scope, element, attr, ctrl, $sniffer, $browser);
+
+      ctrl.$parsers.push(function(value) {
+         if(ctrl.$isEmpty(value)) {
+            ctrl.$setValidity(type, true);
+            return null;
+         }
+
+         if(regexp.test(value)) {
+            ctrl.$setValidity(type, true);
+            return parseDate(value);
+         }
+
+         ctrl.$setValidity(type, false);
+         return undefined;
+      });
+
+      ctrl.$formatters.push(function(value) {
+         if(isDate(value)) {
+            return $filter('date')(value, format);
+         }
+         return '';
+      });
+
+      if(attr.min) {
+         var minValidator = function(value) {
+            var valid = ctrl.$isEmpty(value) ||
+               (parseDate(value) >= parseDate(attr.min));
+            ctrl.$setValidity('min', valid);
+            return valid ? value : undefined;
+         };
+
+         ctrl.$parsers.push(minValidator);
+         ctrl.$formatters.push(minValidator);
+      }
+
+      if(attr.max) {
+         var maxValidator = function(value) {
+            var valid = ctrl.$isEmpty(value) ||
+               (parseDate(value) <= parseDate(attr.max));
+            ctrl.$setValidity('max', valid);
+            return valid ? value : undefined;
+         };
+
+         ctrl.$parsers.push(maxValidator);
+         ctrl.$formatters.push(maxValidator);
+      }
+   };
 }
 
 function numberInputType(scope, element, attr, ctrl, $sniffer, $browser) {
@@ -18855,13 +19401,23 @@ function radioInputType(scope, element, attr, ctrl) {
     element.attr('name', nextUid());
   }
 
-  element.on('click', function() {
+  var listener = function(ev) {
     if (element[0].checked) {
       scope.$apply(function() {
-        ctrl.$setViewValue(attr.value);
+        ctrl.$setViewValue(attr.value, ev && ev.type);
       });
     }
-  });
+  };
+
+  // Allow adding/overriding bound events
+  if (ctrl.$options && ctrl.$options.updateOn) {
+    // bind to user-defined events
+    element.on(ctrl.$options.updateOn, listener);
+  }
+
+  if (!ctrl.$options || ctrl.$options.updateOnDefault) {
+    element.on('click', listener);
+  }
 
   ctrl.$render = function() {
     var value = attr.value;
@@ -18878,11 +19434,21 @@ function checkboxInputType(scope, element, attr, ctrl) {
   if (!isString(trueValue)) trueValue = true;
   if (!isString(falseValue)) falseValue = false;
 
-  element.on('click', function() {
+  var listener = function(ev) {
     scope.$apply(function() {
-      ctrl.$setViewValue(element[0].checked);
+      ctrl.$setViewValue(element[0].checked, ev && ev.type);
     });
-  });
+  };
+
+  // Allow adding/overriding bound events
+  if (ctrl.$options && ctrl.$options.updateOn) {
+    // bind to user-defined events
+    element.on(ctrl.$options.updateOn, listener);
+  }
+
+  if (!ctrl.$options || ctrl.$options.updateOnDefault) {
+    element.on('click', listener);
+  }
 
   ctrl.$render = function() {
     element[0].checked = ctrl.$viewValue;
@@ -19041,14 +19607,14 @@ function checkboxInputType(scope, element, attr, ctrl) {
       </file>
     </example>
  */
-var inputDirective = ['$browser', '$sniffer', function($browser, $sniffer) {
+var inputDirective = ['$browser', '$sniffer', '$filter', function($browser, $sniffer, $filter) {
   return {
     restrict: 'E',
-    require: '?ngModel',
-    link: function(scope, element, attr, ctrl) {
-      if (ctrl) {
-        (inputType[lowercase(attr.type)] || inputType.text)(scope, element, attr, ctrl, $sniffer,
-                                                            $browser);
+    require: ['?ngModel'],
+    link: function(scope, element, attr, ctrls) {
+      if (ctrls[0]) {
+        (inputType[lowercase(attr.type)] || inputType.text)(scope, element, attr, ctrls[0], $sniffer,
+                                                            $browser, $filter);
       }
     }
   };
@@ -19193,8 +19759,8 @@ var VALID_CLASS = 'ng-valid',
  *
  *
  */
-var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$parse', '$animate',
-    function($scope, $exceptionHandler, $attr, $element, $parse, $animate) {
+var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$parse', '$animate', '$timeout',
+    function($scope, $exceptionHandler, $attr, $element, $parse, $animate, $timeout) {
   this.$viewValue = Number.NaN;
   this.$modelValue = Number.NaN;
   this.$parsers = [];
@@ -19206,8 +19772,11 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
   this.$invalid = false;
   this.$name = $attr.name;
 
+
   var ngModelGet = $parse($attr.ngModel),
-      ngModelSet = ngModelGet.assign;
+      ngModelSet = ngModelGet.assign,
+      pendingDebounce = null,
+      ctrl = this;
 
   if (!ngModelSet) {
     throw minErr('ngModel')('nonassign', "Expression '{0}' is non-assignable. Element: {1}",
@@ -19288,20 +19857,20 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
       if ($error[validationErrorKey]) invalidCount--;
       if (!invalidCount) {
         toggleValidCss(true);
-        this.$valid = true;
-        this.$invalid = false;
+        ctrl.$valid = true;
+        ctrl.$invalid = false;
       }
     } else {
       toggleValidCss(false);
-      this.$invalid = true;
-      this.$valid = false;
+      ctrl.$invalid = true;
+      ctrl.$valid = false;
       invalidCount++;
     }
 
     $error[validationErrorKey] = !isValid;
     toggleValidCss(isValid, validationErrorKey);
 
-    parentForm.$setValidity(validationErrorKey, isValid, this);
+    parentForm.$setValidity(validationErrorKey, isValid, ctrl);
   };
 
   /**
@@ -19315,10 +19884,104 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
    * state (ng-pristine class).
    */
   this.$setPristine = function () {
-    this.$dirty = false;
-    this.$pristine = true;
+    ctrl.$dirty = false;
+    ctrl.$pristine = true;
     $animate.removeClass($element, DIRTY_CLASS);
     $animate.addClass($element, PRISTINE_CLASS);
+  };
+
+  /**
+   * @ngdoc method
+   * @name ngModel.NgModelController#$cancelUpdate
+   *
+   * @description
+   * Cancel an update and reset the input element's value to prevent an update to the `$viewValue`,
+   * which may be caused by a pending debounced event or because the input is waiting for a some
+   * future event.
+   *
+   * If you have an input that uses `ng-model-options` to set up debounced events or events such
+   * as blur you can have a situation where there is a period when the value of the input element
+   * is out of synch with the ngModel's `$viewValue`.
+   *
+   * In this case, you can run into difficulties if you try to update the ngModel's `$modelValue`
+   * programmatically before these debounced/future events have resolved/occurred, because Angular's
+   * dirty checking mechanism is not able to tell whether the model has actually changed or not.
+   *
+   * The `$cancelUpdate()` method should be called before programmatically changing the model of an
+   * input which may have such events pending. This is important in order to make sure that the
+   * input field will be updated with the new model value and any pending operations are cancelled.
+   *
+   * <example name="ng-model-cancel-update" module="cancel-update-example">
+   *   <file name="app.js">
+   *     angular.module('cancel-update-example', [])
+   *
+   *     .controller('CancelUpdateCtrl', function($scope) {
+   *       $scope.resetWithCancel = function (e) {
+   *         if (e.keyCode == 27) {
+   *           $scope.myForm.myInput1.$cancelUpdate();
+   *           $scope.myValue = '';
+   *         }
+   *       };
+   *       $scope.resetWithoutCancel = function (e) {
+   *         if (e.keyCode == 27) {
+   *           $scope.myValue = '';
+   *         }
+   *       };
+   *     });
+   *   </file>
+   *   <file name="index.html">
+   *     <div ng-controller="CancelUpdateCtrl">
+   *       <p>Try typing something in each input.  See that the model only updates when you
+   *          blur off the input.
+   *        </p>
+   *        <p>Now see what happens if you start typing then press the Escape key</p>
+   *
+   *       <form name="myForm" ng-model-options="{ updateOn: 'blur' }">
+   *         <p>With $cancelUpdate()</p>
+   *         <input name="myInput1" ng-model="myValue" ng-keydown="resetWithCancel($event)"><br/>
+   *         myValue: "{{ myValue }}"
+   *
+   *         <p>Without $cancelUpdate()</p>
+   *         <input name="myInput2" ng-model="myValue" ng-keydown="resetWithoutCancel($event)"><br/>
+   *         myValue: "{{ myValue }}"
+   *       </form>
+   *     </div>
+   *   </file>
+   * </example>
+   */
+  this.$cancelUpdate = function() {
+    $timeout.cancel(pendingDebounce);
+    ctrl.$render();
+  };
+
+  // update the view value
+  this.$$realSetViewValue = function(value) {
+    ctrl.$viewValue = value;
+
+    // change to dirty
+    if (ctrl.$pristine) {
+      ctrl.$dirty = true;
+      ctrl.$pristine = false;
+      $animate.removeClass($element, PRISTINE_CLASS);
+      $animate.addClass($element, DIRTY_CLASS);
+      parentForm.$setDirty();
+    }
+
+    forEach(ctrl.$parsers, function(fn) {
+      value = fn(value);
+    });
+
+    if (ctrl.$modelValue !== value) {
+      ctrl.$modelValue = value;
+      ngModelSet($scope, value);
+      forEach(ctrl.$viewChangeListeners, function(listener) {
+        try {
+          listener();
+        } catch(e) {
+          $exceptionHandler(e);
+        }
+      });
+    }
   };
 
   /**
@@ -19338,42 +20001,41 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
    *
    * Lastly, all the registered change listeners, in the `$viewChangeListeners` list, are called.
    *
+   * All these actions will be debounced if the {@link ng.directive:ngModelOptions ngModelOptions}
+   * directive is used with a custom debounce for this particular event.
+   *
    * Note that calling this function does not trigger a `$digest`.
    *
    * @param {string} value Value from the view.
+   * @param {string} trigger Event that triggered the update.
    */
-  this.$setViewValue = function(value) {
-    this.$viewValue = value;
+  this.$setViewValue = function(value, trigger) {
+    var debounceDelay = 0,
+        options = ctrl.$options,
+        debounce;
 
-    // change to dirty
-    if (this.$pristine) {
-      this.$dirty = true;
-      this.$pristine = false;
-      $animate.removeClass($element, PRISTINE_CLASS);
-      $animate.addClass($element, DIRTY_CLASS);
-      parentForm.$setDirty();
+    if(options && isDefined(options.debounce)) {
+      debounce = options.debounce;
+      if(isNumber(debounce)) {
+        debounceDelay = debounce;
+      } else if(isNumber(debounce[trigger])) {
+        debounceDelay = debounce[trigger];
+      } else if (isNumber(debounce['default'])) {
+        debounceDelay = debounce['default'];
+      }
     }
 
-    forEach(this.$parsers, function(fn) {
-      value = fn(value);
-    });
-
-    if (this.$modelValue !== value) {
-      this.$modelValue = value;
-      ngModelSet($scope, value);
-      forEach(this.$viewChangeListeners, function(listener) {
-        try {
-          listener();
-        } catch(e) {
-          $exceptionHandler(e);
-        }
-      });
+    $timeout.cancel(pendingDebounce);
+    if (debounceDelay) {
+      pendingDebounce = $timeout(function() {
+        ctrl.$$realSetViewValue(value);
+      }, debounceDelay);
+    } else {
+      ctrl.$$realSetViewValue(value);
     }
   };
 
   // model -> value
-  var ctrl = this;
-
   $scope.$watch(function ngModelWatch() {
     var value = ngModelGet($scope);
 
@@ -19436,6 +20098,11 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
  *    - {@link input[number] number}
  *    - {@link input[email] email}
  *    - {@link input[url] url}
+ *    - {@link input[date] date}
+ *    - {@link input[dateTimeLocal] dateTimeLocal}
+ *    - {@link input[time] time}
+ *    - {@link input[month] month}
+ *    - {@link input[week] week}
  *  - {@link ng.directive:select select}
  *  - {@link ng.directive:textarea textarea}
  *
@@ -19503,19 +20170,26 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
  */
 var ngModelDirective = function() {
   return {
-    require: ['ngModel', '^?form'],
+    require: ['ngModel', '^?form', '^?ngModelOptions'],
     controller: NgModelController,
-    link: function(scope, element, attr, ctrls) {
-      // notify others, especially parent forms
+    link: {
+      pre: function(scope, element, attr, ctrls) {
+        // Pass the ng-model-options to the ng-model controller
+        if (ctrls[2]) {
+          ctrls[0].$options = ctrls[2].$options;
+        }
 
-      var modelCtrl = ctrls[0],
-          formCtrl = ctrls[1] || nullFormCtrl;
+        // notify others, especially parent forms
 
-      formCtrl.$addControl(modelCtrl);
+        var modelCtrl = ctrls[0],
+            formCtrl = ctrls[1] || nullFormCtrl;
 
-      scope.$on('$destroy', function() {
-        formCtrl.$removeControl(modelCtrl);
-      });
+        formCtrl.$addControl(modelCtrl);
+
+        scope.$on('$destroy', function() {
+          formCtrl.$removeControl(modelCtrl);
+        });
+      }
     }
   };
 };
@@ -19779,6 +20453,134 @@ var ngValueDirective = function() {
         };
       }
     }
+  };
+};
+
+/**
+ * @ngdoc directive
+ * @name ngModelOptions
+ *
+ * @description
+ * Allows tuning how model updates are done. Using `ngModelOptions` you can specify a custom list of
+ * events that will trigger a model update and/or a debouncing delay so that the actual update only
+ * takes place when a timer expires; this timer will be reset after another change takes place.
+ *
+ * Given the nature of `ngModelOptions`, the value displayed inside input fields in the view might
+ * be different than the value in the actual model. This means that if you update the model you
+ * should also invoke {@link ngModel.NgModelController `$cancelUpdate`} on the relevant input field in
+ * order to make sure it is synchronized with the model and that any debounced action is canceled.
+ *
+ * The easiest way to reference the control's {@link ngModel.NgModelController `$cancelUpdate`}
+ * method is by making sure the input is placed inside a form that has a `name` attribute. This is
+ * important because `form` controllers are published to the related scope under the name in their
+ * `name` attribute.
+ *
+ * @param {Object} ngModelOptions options to apply to the current model. Valid keys are:
+ *   - `updateOn`: string specifying which event should be the input bound to. You can set several
+ *     events using an space delimited list. There is a special event called `default` that
+ *     matches the default events belonging of the control.
+ *   - `debounce`: integer value which contains the debounce model update value in milliseconds. A
+ *     value of 0 triggers an immediate update. If an object is supplied instead, you can specify a
+ *     custom value for each event. For example:
+ *     `ngModelOptions="{ updateOn: 'default blur', debounce: {'default': 500, 'blur': 0} }"`
+ *
+ * @example
+
+  The following example shows how to override immediate updates. Changes on the inputs within the
+  form will update the model only when the control loses focus (blur event). If `escape` key is
+  pressed while the input field is focused, the value is reset to the value in the current model.
+
+  <example name="ngModelOptions-directive-blur">
+    <file name="index.html">
+      <div ng-controller="Ctrl">
+        <form name="userForm">
+          Name:
+          <input type="text" name="userName"
+                 ng-model="user.name"
+                 ng-model-options="{ updateOn: 'blur' }"
+                 ng-keyup="cancel($event)" /><br />
+
+          Other data:
+          <input type="text" ng-model="user.data" /><br />
+        </form>
+        <pre>user.name = <span ng-bind="user.name"></span></pre>
+      </div>
+    </file>
+    <file name="app.js">
+      function Ctrl($scope) {
+        $scope.user = { name: 'say', data: '' };
+
+        $scope.cancel = function (e) {
+          if (e.keyCode == 27) {
+            $scope.userForm.userName.$cancelUpdate();
+          }
+        };
+      }
+    </file>
+    <file name="protractor.js" type="protractor">
+      var model = element(by.binding('user.name'));
+      var input = element(by.model('user.name'));
+      var other = element(by.model('user.data'));
+
+      it('should allow custom events', function() {
+        input.sendKeys(' hello');
+        input.click();
+        expect(model.getText()).toEqual('say');
+        other.click();
+        expect(model.getText()).toEqual('say hello');
+      });
+
+      it('should $cancelUpdate when model changes', function() {
+        input.sendKeys(' hello');
+        expect(input.getAttribute('value')).toEqual('say hello');
+        input.sendKeys(protractor.Key.ESCAPE);
+        expect(input.getAttribute('value')).toEqual('say');
+        other.click();
+        expect(model.getText()).toEqual('say');
+      });
+    </file>
+  </example>
+
+  This one shows how to debounce model changes. Model will be updated only 1 sec after last change.
+  If the `Clear` button is pressed, any debounced action is canceled and the value becomes empty.
+
+  <example name="ngModelOptions-directive-debounce">
+    <file name="index.html">
+      <div ng-controller="Ctrl">
+        <form name="userForm">
+          Name:
+          <input type="text" name="userName"
+                 ng-model="user.name"
+                 ng-model-options="{ debounce: 1000 }" />
+          <button ng-click="userForm.userName.$cancelUpdate(); user.name=''">Clear</button><br />
+        </form>
+        <pre>user.name = <span ng-bind="user.name"></span></pre>
+      </div>
+    </file>
+    <file name="app.js">
+      function Ctrl($scope) {
+        $scope.user = { name: 'say' };
+      }
+    </file>
+  </example>
+ */
+var ngModelOptionsDirective = function() {
+  return {
+    controller: ['$scope', '$attrs', function($scope, $attrs) {
+      var that = this;
+      this.$options = $scope.$eval($attrs.ngModelOptions);
+      // Allow adding/overriding bound events
+      if (this.$options.updateOn) {
+        this.$options.updateOnDefault = false;
+        // extract "default" pseudo-event from list of events that can trigger a model update
+        this.$options.updateOn = this.$options.updateOn.replace(DEFAULT_REGEXP, function() {
+          that.$options.updateOnDefault = true;
+          return ' ';
+        });
+      } else {
+        this.$options.updateOnDefault = true;
+      }
+    }]
   };
 };
 
@@ -21753,7 +22555,7 @@ var ngPluralizeDirective = ['$locale', '$interpolate', function($locale, $interp
           //if explicit number rule such as 1, 2, 3... is defined, just use it. Otherwise,
           //check it against pluralization rules in $locale service
           if (!(value in whens)) value = $locale.pluralCat(value - offset);
-           return whensExpFns[value](scope, element, true);
+           return whensExpFns[value](scope);
         } else {
           return '';
         }
@@ -22199,10 +23001,10 @@ var ngRepeatDirective = ['$parse', '$animate', function($parse, $animate) {
  * restating the styles for the .ng-hide class in CSS:
  * ```css
  * .ng-hide {
- *   //!annotate CSS Specificity|Not to worry, this will override the AngularJS default...
+ *   /&#42; Not to worry, this will override the AngularJS default...
  *   display:block!important;
  *
- *   //this is just another form of hiding an element
+ *   /&#42; this is just another form of hiding an element &#42;/
  *   position:absolute;
  *   top:-9999px;
  *   left:-9999px;
@@ -22228,8 +23030,18 @@ var ngRepeatDirective = ['$parse', '$animate', function($parse, $animate) {
  * //a working example can be found at the bottom of this page
  * //
  * .my-element.ng-hide-add, .my-element.ng-hide-remove {
- *   transition:0.5s linear all;
+ *   /&#42; this is required as of 1.3x to properly
+ *      apply all styling in a show/hide animation &#42;/
+ *   transition:0s linear all;
+ *
+ *   /&#42; this must be set as block so the animation is visible &#42;/
  *   display:block!important;
+ * }
+ *
+ * .my-element.ng-hide-add-active,
+ * .my-element.ng-hide-remove-active {
+ *   /&#42; the transition is defined in the active class &#42;/
+ *   transition:1s linear all;
  * }
  *
  * .my-element.ng-hide-add { ... }
@@ -22268,8 +23080,6 @@ var ngRepeatDirective = ['$parse', '$animate', function($parse, $animate) {
     </file>
     <file name="animations.css">
       .animate-show {
-        -webkit-transition:all linear 0.5s;
-        transition:all linear 0.5s;
         line-height:20px;
         opacity:1;
         padding:10px;
@@ -22280,6 +23090,12 @@ var ngRepeatDirective = ['$parse', '$animate', function($parse, $animate) {
       .animate-show.ng-hide-add,
       .animate-show.ng-hide-remove {
         display:block!important;
+      }
+
+      .animate-show.ng-hide-add.ng-hide-add-active,
+      .animate-show.ng-hide-remove.ng-hide-remove-active {
+        -webkit-transition:all linear 0.5s;
+        transition:all linear 0.5s;
       }
 
       .animate-show.ng-hide {
@@ -23477,7 +24293,9 @@ var optionDirective = ['$interpolate', function($interpolate) {
         if (interpolateFn) {
           scope.$watch(interpolateFn, function interpolateWatchAction(newVal, oldVal) {
             attr.$set('value', newVal);
-            if (newVal !== oldVal) selectCtrl.removeOption(oldVal);
+            if (oldVal !== newVal) {
+              selectCtrl.removeOption(oldVal);
+            }
             selectCtrl.addOption(newVal);
           });
         } else {
@@ -23494,7 +24312,7 @@ var optionDirective = ['$interpolate', function($interpolate) {
 
 var styleDirective = valueFn({
   restrict: 'E',
-  terminal: true
+  terminal: false
 });
 
   if (window.angular.bootstrap) {
@@ -23515,7 +24333,7 @@ var styleDirective = valueFn({
 
 })(window, document);
 
-!window.angular.$$csp() && window.angular.element(document).find('head').prepend('<style type="text/css">@charset "UTF-8";[ng\\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide{display:none !important;}ng\\:form{display:block;}.ng-animate-block-transitions{transition:0s all!important;-webkit-transition:0s all!important;}</style>');
+!window.angular.$$csp() && window.angular.element(document).find('head').prepend('<style type="text/css">@charset "UTF-8";[ng\\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide{display:none !important;}ng\\:form{display:block;}</style>');
 },{}],12:[function(require,module,exports){
 //     Backbone.js 1.0.0
 
@@ -25089,13 +25907,10 @@ var styleDirective = valueFn({
 
 }).call(this);
 
-},{"underscore":"9eM++n"}],"jquery.sortElements":[function(require,module,exports){
-module.exports=require('BU4qJ2');
+},{"underscore":"9eM++n"}],13:[function(require,module,exports){
+
 },{}],"BU4qJ2":[function(require,module,exports){
 (function (global){
-(function browserifyShim(module, define) {
-
-; global.$ = require("jquery");
 (function browserifyShim(module, define) {
 
 ; global.$ = require("jquery");
@@ -25170,10 +25985,10 @@ jQuery.fn.sortElements = (function(){
 })();
 }).call(global, module, undefined);
 
-}).call(global, module, undefined);
-
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"jquery":"lwLqBl"}],15:[function(require,module,exports){
+},{"jquery":"lwLqBl"}],"jquery.sortElements":[function(require,module,exports){
+module.exports=require('BU4qJ2');
+},{}],16:[function(require,module,exports){
 //      JointJS library.
 //      (c) 2011-2013 client IO
 
@@ -25487,7 +26302,7 @@ if (typeof exports === 'object') {
 
     module.exports = joint.shapes.basic;
 }
-},{"../src/core":24,"../src/joint.dia.element":27,"lodash":35}],16:[function(require,module,exports){
+},{"../src/core":25,"../src/joint.dia.element":28,"lodash":34}],17:[function(require,module,exports){
 if (typeof exports === 'object') {
 
     var joint = {
@@ -25650,7 +26465,7 @@ if (typeof exports === 'object') {
     module.exports = joint.shapes.chess;
 }
 
-},{"../src/core":24,"./joint.shapes.basic":15}],17:[function(require,module,exports){
+},{"../src/core":25,"./joint.shapes.basic":16}],18:[function(require,module,exports){
 if (typeof exports === 'object') {
 
     var joint = {
@@ -25774,7 +26589,7 @@ if (typeof exports === 'object') {
     module.exports = joint.shapes.devs;
 }
 
-},{"../src/core":24,"../src/joint.dia.element":27,"../src/joint.dia.link":29,"./joint.shapes.basic":15,"lodash":35}],18:[function(require,module,exports){
+},{"../src/core":25,"../src/joint.dia.element":28,"../src/joint.dia.link":29,"./joint.shapes.basic":16,"lodash":34}],19:[function(require,module,exports){
 if (typeof exports === 'object') {
 
     var joint = {
@@ -25998,7 +26813,7 @@ if (typeof exports === 'object') {
     module.exports = joint.shapes.erd;
 }
 
-},{"../src/core":24,"../src/joint.dia.element":27,"../src/joint.dia.link":29}],19:[function(require,module,exports){
+},{"../src/core":25,"../src/joint.dia.element":28,"../src/joint.dia.link":29}],20:[function(require,module,exports){
 if (typeof exports === 'object') {
 
     var joint = {
@@ -26084,7 +26899,7 @@ if (typeof exports === 'object') {
     module.exports = joint.shapes.fsa;
 }
 
-},{"../src/core":24,"../src/joint.dia.element":27,"../src/joint.dia.link":29,"./joint.shapes.basic":15}],20:[function(require,module,exports){
+},{"../src/core":25,"../src/joint.dia.element":28,"../src/joint.dia.link":29,"./joint.shapes.basic":16}],21:[function(require,module,exports){
 if (typeof exports === 'object') {
 
     var joint = {
@@ -26154,7 +26969,7 @@ if (typeof exports === 'object') {
     module.exports = joint.shapes.org;
 }
 
-},{"../src/core":24,"../src/joint.dia.element":27,"../src/joint.dia.link":29}],21:[function(require,module,exports){
+},{"../src/core":25,"../src/joint.dia.element":28,"../src/joint.dia.link":29}],22:[function(require,module,exports){
 if (typeof exports === 'object') {
 
     var joint = {
@@ -26317,7 +27132,7 @@ if (typeof exports === 'object') {
     module.exports = joint.shapes.pn;
 }
 
-},{"../src/core":24,"../src/joint.dia.element":27,"../src/joint.dia.link":29,"./joint.shapes.basic":15}],22:[function(require,module,exports){
+},{"../src/core":25,"../src/joint.dia.element":28,"../src/joint.dia.link":29,"./joint.shapes.basic":16}],23:[function(require,module,exports){
 if (typeof exports === 'object') {
 
     var joint = {
@@ -26625,7 +27440,7 @@ if (typeof exports === 'object') {
     module.exports = joint.shapes.uml;
 }
 
-},{"../src/core":24,"../src/joint.dia.element":27,"../src/joint.dia.link":29,"./joint.shapes.basic":15,"lodash":35}],23:[function(require,module,exports){
+},{"../src/core":25,"../src/joint.dia.element":28,"../src/joint.dia.link":29,"./joint.shapes.basic":16,"lodash":34}],24:[function(require,module,exports){
 // This file must be maintained in order for the joint.dia.graph.js to be useable in the NodeJS environment.
 // Edit this file whenever a new shape file is added or removed!
 
@@ -26640,7 +27455,7 @@ module.exports = {
     devs: require('./joint.shapes.devs'),
     org: require('./joint.shapes.org')
 };
-},{"./joint.shapes.basic":15,"./joint.shapes.chess":16,"./joint.shapes.devs":17,"./joint.shapes.erd":18,"./joint.shapes.fsa":19,"./joint.shapes.org":20,"./joint.shapes.pn":21,"./joint.shapes.uml":22}],24:[function(require,module,exports){
+},{"./joint.shapes.basic":16,"./joint.shapes.chess":17,"./joint.shapes.devs":18,"./joint.shapes.erd":19,"./joint.shapes.fsa":20,"./joint.shapes.org":21,"./joint.shapes.pn":22,"./joint.shapes.uml":23}],25:[function(require,module,exports){
 //      JointJS library.
 //      (c) 2011-2013 client IO
 
@@ -27144,7 +27959,7 @@ if (typeof exports === 'object') {
 
     module.exports = joint;
 }
-},{"lodash":35}],25:[function(require,module,exports){
+},{"lodash":34}],26:[function(require,module,exports){
 //      Geometry library.
 //      (c) 2011-2013 client IO
 
@@ -27707,7 +28522,7 @@ if (typeof exports === 'object') {
     }
 }));
 
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 //      JointJS.
 //      (c) 2011-2013 client IO
 
@@ -28437,7 +29252,7 @@ if (typeof exports === 'object') {
     module.exports.CellView = joint.dia.CellView;
 }
 
-},{"./core":24,"./joint.dia.link":29,"backbone":12,"lodash":35}],27:[function(require,module,exports){
+},{"./core":25,"./joint.dia.link":29,"backbone":12,"lodash":34}],28:[function(require,module,exports){
 //      JointJS library.
 //      (c) 2011-2013 client IO
 
@@ -28999,300 +29814,7 @@ if (typeof exports === 'object') {
     module.exports.ElementView = joint.dia.ElementView;
 }
 
-},{"./core":24,"./joint.dia.cell":26,"backbone":12,"lodash":35}],28:[function(require,module,exports){
-//      JointJS, the JavaScript diagramming library.
-//      (c) 2011-2013 client IO
-
-
-if (typeof exports === 'object') {
-
-    var joint = {
-        dia: {
-            Link: require('./joint.dia.link').Link,
-            Element: require('./joint.dia.element').Element
-        },
-        shapes: require('../plugins/shapes')
-    };
-    var Backbone = require('backbone');
-    var _ = require('lodash');
-    var g = require('./geometry').g;
-}
-
-
-
-joint.dia.GraphCells = Backbone.Collection.extend({
-
-    initialize: function() {
-        
-        // Backbone automatically doesn't trigger re-sort if models attributes are changed later when
-        // they're already in the collection. Therefore, we're triggering sort manually here.
-        this.on('change:z', this.sort, this);
-    },
-
-    model: function(attrs, options) {
-
-        if (attrs.type === 'link') {
-
-            return new joint.dia.Link(attrs, options);
-        }
-
-        var module = attrs.type.split('.')[0];
-        var entity = attrs.type.split('.')[1];
-
-        if (joint.shapes[module] && joint.shapes[module][entity]) {
-
-            return new joint.shapes[module][entity](attrs, options);
-        }
-        
-        return new joint.dia.Element(attrs, options);
-    },
-
-    // `comparator` makes it easy to sort cells based on their `z` index.
-    comparator: function(model) {
-
-        return model.get('z') || 0;
-    },
-
-    // Get all inbound and outbound links connected to the cell `model`.
-    getConnectedLinks: function(model, opt) {
-
-        opt = opt || {};
-
-        if (_.isUndefined(opt.inbound) && _.isUndefined(opt.outbound)) {
-            opt.inbound = opt.outbound = true;
-        }
-
-        var links = [];
-        
-        this.each(function(cell) {
-
-            var source = cell.get('source');
-            var target = cell.get('target');
-
-            if (source && source.id === model.id && opt.outbound) {
-                
-                links.push(cell);
-            }
-
-            if (target && target.id === model.id && opt.inbound) {
-
-                links.push(cell);
-            }
-        });
-
-        return links;
-    }
-});
-
-
-joint.dia.Graph = Backbone.Model.extend({
-
-    initialize: function() {
-
-        this.set('cells', new joint.dia.GraphCells);
-
-        // Make all the events fired in the `cells` collection available.
-        // to the outside world.
-        this.get('cells').on('all', this.trigger, this);
-        
-        this.get('cells').on('remove', this.removeCell, this);
-    },
-
-    toJSON: function() {
-
-        // Backbone does not recursively call `toJSON()` on attributes that are themselves models/collections.
-        // It just clones the attributes. Therefore, we must call `toJSON()` on the cells collection explicitely.
-        var json = Backbone.Model.prototype.toJSON.apply(this, arguments);
-        json.cells = this.get('cells').toJSON();
-        return json;
-    },
-
-    fromJSON: function(json) {
-
-        if (!json.cells) {
-
-            throw new Error('Graph JSON must contain cells array.');
-        }
-
-        var attrs = json;
-
-        // Cells are the only attribute that is being set differently, using `cells.add()`.
-        var cells = json.cells;
-        delete attrs.cells;
-        
-        this.set(attrs);
-        
-        this.resetCells(cells);
-    },
-
-    clear: function() {
-
-        this.get('cells').remove(this.get('cells').models);
-    },
-
-    _prepareCell: function(cell) {
-
-        if (cell instanceof Backbone.Model && _.isUndefined(cell.get('z'))) {
-
-            cell.set('z', this.get('cells').length, { silent: true });
-            
-        } else if (_.isUndefined(cell.z)) {
-
-            cell.z = this.get('cells').length;
-        }
-
-        return cell;
-    },
-    
-    addCell: function(cell, options) {
-
-        if (_.isArray(cell)) {
-
-            return this.addCells(cell, options);
-        }
-
-        this.get('cells').add(this._prepareCell(cell), options || {});
-
-        return this;
-    },
-
-    addCells: function(cells, options) {
-
-        _.each(cells, function(cell) { this.addCell(cell, options); }, this);
-
-        return this;
-    },
-
-    // When adding a lot of cells, it is much more efficient to
-    // reset the entire cells collection in one go.
-    // Useful for bulk operations and optimizations.
-    resetCells: function(cells) {
-        
-        this.get('cells').reset(_.map(cells, this._prepareCell, this));
-
-        return this;
-    },
-
-    removeCell: function(cell, collection, options) {
-
-        // Applications might provide a `disconnectLinks` option set to `true` in order to
-        // disconnect links when a cell is removed rather then removing them. The default
-        // is to remove all the associated links.
-        if (options && options.disconnectLinks) {
-            
-            this.disconnectLinks(cell);
-
-        } else {
-
-            this.removeLinks(cell);
-        }
-
-        // Silently remove the cell from the cells collection. Silently, because
-        // `joint.dia.Cell.prototype.remove` already triggers the `remove` event which is
-        // then propagated to the graph model. If we didn't remove the cell silently, two `remove` events
-        // would be triggered on the graph model.
-        this.get('cells').remove(cell, { silent: true });
-    },
-
-    // Get a cell by `id`.
-    getCell: function(id) {
-
-        return this.get('cells').get(id);
-    },
-
-    getElements: function() {
-
-        return this.get('cells').filter(function(cell) {
-
-            return cell instanceof joint.dia.Element;
-        });
-    },
-    
-    getLinks: function() {
-
-        return this.get('cells').filter(function(cell) {
-
-            return cell instanceof joint.dia.Link;
-        });
-    },
-
-    // Get all inbound and outbound links connected to the cell `model`.
-    getConnectedLinks: function(model, opt) {
-
-        return this.get('cells').getConnectedLinks(model, opt);
-    },
-
-    getNeighbors: function(el) {
-
-        var links = this.getConnectedLinks(el);
-        var neighbors = [];
-        var cells = this.get('cells');
-        
-        _.each(links, function(link) {
-
-            var source = link.get('source');
-            var target = link.get('target');
-
-            // Discard if it is a point.
-            if (!source.x) {
-                var sourceElement = cells.get(source.id);
-                if (sourceElement !== el) {
-
-                    neighbors.push(sourceElement);
-                }
-            }
-            if (!target.x) {
-                var targetElement = cells.get(target.id);
-                if (targetElement !== el) {
-
-                    neighbors.push(targetElement);
-                }
-            }
-        });
-
-        return neighbors;
-    },
-    
-    // Disconnect links connected to the cell `model`.
-    disconnectLinks: function(model) {
-
-        _.each(this.getConnectedLinks(model), function(link) {
-
-            link.set(link.get('source').id === model.id ? 'source' : 'target', g.point(0, 0));
-        });
-    },
-
-    // Remove links connected to the cell `model` completely.
-    removeLinks: function(model) {
-
-        _.invoke(this.getConnectedLinks(model), 'remove');
-    },
-
-    // Find all views at given point
-    findModelsFromPoint: function(p) {
-
-	return _.filter(this.getElements(), function(el) {
-	    return el.getBBox().containsPoint(p);
-	});
-    },
-
-
-    // Find all views in given area
-    findModelsInArea: function(r) {
-
-	return _.filter(this.getElements(), function(el) {
-	    return el.getBBox().intersect(r);
-	});
-    }
-
-});
-
-
-if (typeof exports === 'object') {
-
-    module.exports.Graph = joint.dia.Graph;
-}
-},{"../plugins/shapes":23,"./geometry":25,"./joint.dia.element":27,"./joint.dia.link":29,"backbone":12,"lodash":35}],29:[function(require,module,exports){
+},{"./core":25,"./joint.dia.cell":27,"backbone":12,"lodash":34}],29:[function(require,module,exports){
 //      JointJS diagramming library.
 //      (c) 2011-2013 client IO
 
@@ -30552,435 +31074,10 @@ if (typeof exports === 'object') {
     module.exports.Link = joint.dia.Link;
     module.exports.LinkView = joint.dia.LinkView;
 }
-},{"./geometry":25,"./joint.dia.cell":26,"backbone":12,"lodash":35}],30:[function(require,module,exports){
-//      JointJS library.
-//      (c) 2011-2013 client IO
-
-
-joint.dia.Paper = Backbone.View.extend({
-
-    options: {
-
-        width: 800,
-        height: 600,
-        gridSize: 50,
-        perpendicularLinks: false,
-        elementView: joint.dia.ElementView,
-        linkView: joint.dia.LinkView,
-        snapLinks: false, // false, true, { radius: value }
-
-        // Defines what link model is added to the graph after an user clicks on an active magnet.
-        // Value could be the Backbone.model or a function returning the Backbone.model
-        // defaultLink: function(elementView, magnet) { return condition ? new customLink1() : new customLink2() }
-        defaultLink: new joint.dia.Link,
-
-        // Check whether to add a new link to the graph when user clicks on an a magnet.
-        validateMagnet: function(cellView, magnet) {
-            return magnet.getAttribute('magnet') !== 'passive';
-        },
-
-        // Check whether to allow or disallow the link connection while an arrowhead end (source/target)
-        // being changed.
-        validateConnection: function(cellViewS, magnetS, cellViewT, magnetT, end, linkView) {
-            return (end === 'target' ? cellViewT : cellViewS) instanceof joint.dia.ElementView;
-        }
-    },
-
-    events: {
-
-        'mousedown': 'pointerdown',
-        'dblclick': 'mousedblclick',
-        'touchstart': 'pointerdown',
-        'mousemove': 'pointermove',
-        'touchmove': 'pointermove',
-        'click': 'mouseclick'
-    },
-
-    initialize: function() {
-
-        _.bindAll(this, 'addCell', 'sortCells', 'resetCells', 'pointerup');
-
-        this.svg = V('svg').node;
-        this.viewport = V('g').node;
-
-        // Append `<defs>` element to the SVG document. This is useful for filters and gradients.
-        V(this.svg).append(V('defs').node);
-
-        V(this.viewport).attr({ 'class': 'viewport' });
-        
-        V(this.svg).append(this.viewport);
-
-        this.$el.append(this.svg);
-
-        this.setDimensions();
-
-        this.listenTo(this.model, 'add', this.addCell);
-        this.listenTo(this.model, 'reset', this.resetCells);
-        this.listenTo(this.model, 'sort', this.sortCells);
-
-        $(document).on('mouseup touchend', this.pointerup);
-
-        // Hold the value when mouse has been moved: when mouse moved, no click event will be triggered
-        this._mousemoved =  false;
-    },
-
-
-    remove: function() {
-
-	$(document).off('mouseup touchend', this.pointerup);
-
-	Backbone.View.prototype.remove.call(this);
-    },
-
-    setDimensions: function(width, height) {
-
-        if (width) this.options.width = width;
-        if (height) this.options.height = height;
-        
-        V(this.svg).attr('width', this.options.width);
-        V(this.svg).attr('height', this.options.height);
-
-	this.trigger('resize');
-    },
-
-    // Expand/shrink the paper to fit the content. Snap the width/height to the grid
-    // defined in `gridWidth`, `gridHeight`. `padding` adds to the resulting width/height of the paper.
-    fitToContent: function(gridWidth, gridHeight, padding) {
-
-	gridWidth = gridWidth || 1;
-	gridHeight = gridHeight || 1;
-        padding = padding || 0;
-
-	// Calculate the paper size to accomodate all the graph's elements.
-	var bbox = V(this.viewport).bbox(true, this.svg);
-
-	var calcWidth = Math.ceil((bbox.width + bbox.x) / gridWidth) * gridWidth;
-	var calcHeight = Math.ceil((bbox.height + bbox.y) / gridHeight) * gridHeight;
-
-        calcWidth += padding;
-        calcHeight += padding;
-        
-	// Change the dimensions only if there is a size discrepency
-	if (calcWidth != this.options.width || calcHeight != this.options.height) {
-	    this.setDimensions(calcWidth || this.options.width , calcHeight || this.options.height);
-	}
-    },
-
-    getContentBBox: function() {
-
-        var crect = this.viewport.getBoundingClientRect();
-
-        // Using Screen CTM was the only way to get the real viewport bounding box working in both
-        // Google Chrome and Firefox.
-        var ctm = this.viewport.getScreenCTM();
-
-        var bbox = g.rect(Math.abs(crect.left - ctm.e), Math.abs(crect.top - ctm.f), crect.width, crect.height);
-
-        return bbox;
-    },
-
-    createViewForModel: function(cell) {
-
-        var view;
-        
-        var type = cell.get('type');
-        var module = type.split('.')[0];
-        var entity = type.split('.')[1];
-
-        // If there is a special view defined for this model, use that one instead of the default `elementView`/`linkView`.
-        if (joint.shapes[module] && joint.shapes[module][entity + 'View']) {
-
-            view = new joint.shapes[module][entity + 'View']({ model: cell, interactive: this.options.interactive });
-            
-        } else if (cell instanceof joint.dia.Element) {
-                
-            view = new this.options.elementView({ model: cell, interactive: this.options.interactive });
-
-        } else {
-
-            view = new this.options.linkView({ model: cell, interactive: this.options.interactive });
-        }
-
-        return view;
-    },
-    
-    addCell: function(cell) {
-
-        var view = this.createViewForModel(cell);
-
-        V(this.viewport).append(view.el);
-        view.paper = this;
-        view.render();
-
-        // This is the only way to prevent image dragging in Firefox that works.
-        // Setting -moz-user-select: none, draggable="false" attribute or user-drag: none didn't help.
-        $(view.el).find('image').on('dragstart', function() { return false; });
-    },
-
-    resetCells: function(cellsCollection) {
-
-        $(this.viewport).empty();
-
-        var cells = cellsCollection.models.slice();
-
-        // Make sure links are always added AFTER elements.
-        // They wouldn't find their sources/targets in the DOM otherwise.
-        cells.sort(function(a, b) { return a instanceof joint.dia.Link ? 1 : -1; });
-        
-        _.each(cells, this.addCell, this);
-
-        // Sort the cells in the DOM manually as we might have changed the order they
-        // were added to the DOM (see above).
-        this.sortCells();
-    },
-
-    sortCells: function() {
-
-        // Run insertion sort algorithm in order to efficiently sort DOM elements according to their
-        // associated model `z` attribute.
-
-        var $cells = $(this.viewport).children('[model-id]');
-        var cells = this.model.get('cells');
-
-        // Using the jquery.sortElements plugin by Padolsey.
-        // See http://james.padolsey.com/javascript/sorting-elements-with-jquery/.
-        $cells.sortElements(function(a, b) {
-
-            var cellA = cells.get($(a).attr('model-id'));
-            var cellB = cells.get($(b).attr('model-id'));
-            
-            return (cellA.get('z') || 0) > (cellB.get('z') || 0) ? 1 : -1;
-        });
-    },
-
-    scale: function(sx, sy, ox, oy) {
-
-        if (!ox) {
-
-            ox = 0;
-            oy = 0;
-        }
-
-        // Remove previous transform so that the new scale is not affected by previous scales, especially
-        // the old translate() does not affect the new translate if an origin is specified.
-        V(this.viewport).attr('transform', '');
-        
-        // TODO: V.scale() doesn't support setting scale origin. #Fix        
-        if (ox || oy) {
-            V(this.viewport).translate(-ox * (sx - 1), -oy * (sy - 1));
-        }
-        
-        V(this.viewport).scale(sx, sy);
-
-	this.trigger('scale', ox, oy);
-
-        return this;
-    },
-
-    rotate: function(deg, ox, oy) {
-        
-        // If the origin is not set explicitely, rotate around the center. Note that
-        // we must use the plain bounding box (`this.el.getBBox()` instead of the one that gives us
-        // the real bounding box (`bbox()`) including transformations).
-        if (_.isUndefined(ox)) {
-
-            var bbox = this.viewport.getBBox();
-            ox = bbox.width/2;
-            oy = bbox.height/2;
-        }
-
-        V(this.viewport).rotate(deg, ox, oy);
-    },
-
-    // Find the first view climbing up the DOM tree starting at element `el`. Note that `el` can also
-    // be a selector or a jQuery object.
-    findView: function(el) {
-
-        var $el = this.$(el);
-
-        if ($el.length === 0 || $el[0] === this.el) {
-
-            return undefined;
-        }
-
-        if ($el.data('view')) {
-
-            return $el.data('view');
-        }
-
-        return this.findView($el.parent());
-    },
-
-    // Find a view for a model `cell`. `cell` can also be a string representing a model `id`.
-    findViewByModel: function(cell) {
-
-        var id = _.isString(cell) ? cell : cell.id;
-        
-        var $view = this.$('[model-id="' + id + '"]');
-        if ($view.length) {
-
-            return $view.data('view');
-        }
-        return undefined;
-    },
-
-    // Find all views at given point
-    findViewsFromPoint: function(p) {
-
-	p = g.point(p);
-
-        var views = _.map(this.model.getElements(), this.findViewByModel);
-
-	return _.filter(views, function(view) {
-	    return g.rect(V(view.el).bbox(false, this.viewport)).containsPoint(p);
-	}, this);
-    },
-
-    // Find all views in given area
-    findViewsInArea: function(r) {
-
-	r = g.rect(r);
-
-        var views = _.map(this.model.getElements(), this.findViewByModel);
-
-	return _.filter(views, function(view) {
-	    return r.intersect(g.rect(V(view.el).bbox(false, this.viewport)));
-	}, this);
-    },
-
-    getModelById: function(id) {
-
-        return this.model.getCell(id);
-    },
-
-    snapToGrid: function(p) {
-
-        // Convert global coordinates to the local ones of the `viewport`. Otherwise,
-        // improper transformation would be applied when the viewport gets transformed (scaled/rotated). 
-        var localPoint = V(this.viewport).toLocalPoint(p.x, p.y);
-
-        return {
-            x: g.snapToGrid(localPoint.x, this.options.gridSize),
-            y: g.snapToGrid(localPoint.y, this.options.gridSize)
-        };
-    },
-
-    getDefaultLink: function(cellView, magnet) {
-
-        return _.isFunction(this.options.defaultLink)
-        // default link is a function producing link model
-            ? this.options.defaultLink.call(this, cellView, magnet)
-        // default link is the Backbone model
-            : this.options.defaultLink.clone();
-    },
-
-    // Interaction.
-    // ------------
-
-    mouseclick: function(evt) {
-
-        // Trigger Event when mouse not moved
-        if (!this._mousemoved) {
-            evt.preventDefault();
-            evt = joint.util.normalizeEvent(evt);
-
-            var view = this.findView(evt.target);
-            var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-
-            if (view) {
-
-                view.pointerclick(evt, localPoint.x, localPoint.y);
-            } else {
-
-                this.trigger('blank:pointerclick', evt, localPoint.x, localPoint.y);
-            }
-        }
-
-        this._mousemoved = false;
-    },
-
-    mousedblclick: function(evt) {
-        
-        evt.preventDefault();
-        evt = joint.util.normalizeEvent(evt);
-        
-        var view = this.findView(evt.target);
-        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-
-        if (view) {
-            
-            view.pointerdblclick(evt, localPoint.x, localPoint.y);
-            
-        } else {
-            
-            this.trigger('blank:pointerdblclick', evt, localPoint.x, localPoint.y);
-        }
-    },
-
-    pointerdown: function(evt) {
-
-        evt.preventDefault();
-        evt = joint.util.normalizeEvent(evt);
-        
-        var view = this.findView(evt.target);
-
-        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-        
-        if (view) {
-
-            this.sourceView = view;
-
-            view.pointerdown(evt, localPoint.x, localPoint.y);
-            
-        } else {
-
-            this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
-        }
-    },
-
-    pointermove: function(evt) {
-
-        evt.preventDefault();
-        evt = joint.util.normalizeEvent(evt);
-
-
-        if (this.sourceView) {
-            // Mouse moved the view
-            this._mousemoved = true;
-
-            var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-
-            this.sourceView.pointermove(evt, localPoint.x, localPoint.y);
-        }
-    },
-
-    pointerup: function(evt) {
-
-        evt = joint.util.normalizeEvent(evt);
-
-        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-        
-        if (this.sourceView) {
-
-            this.sourceView.pointerup(evt, localPoint.x, localPoint.y);
-
-            //"delete sourceView" occasionally throws an error in chrome (illegal access exception)
-	    this.sourceView = null;
-
-        } else {
-
-            this.trigger('blank:pointerup', evt, localPoint.x, localPoint.y);
-        }
-    }
-});
-
-},{}],"vectorizer":[function(require,module,exports){
+},{"./geometry":26,"./joint.dia.cell":27,"backbone":12,"lodash":34}],"vectorizer":[function(require,module,exports){
 module.exports=require('k3mQBb');
 },{}],"k3mQBb":[function(require,module,exports){
 (function (global){
-(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
-
-; global.underscore = require("underscore");
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 
 ; global.underscore = require("underscore");
@@ -31614,16 +31711,11 @@ module.exports=require('k3mQBb');
 
 }).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
-; browserify_shim__define__module__export__(typeof vectorizer != "undefined" ? vectorizer : window.vectorizer);
-
-}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
-
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"underscore":"9eM++n"}],"jquery":[function(require,module,exports){
 module.exports=require('lwLqBl');
 },{}],"lwLqBl":[function(require,module,exports){
 (function (global){
-(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 /*!
  * jQuery JavaScript Library v2.1.1
@@ -40820,12 +40912,8 @@ return jQuery;
 
 }).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
-; browserify_shim__define__module__export__(typeof $ != "undefined" ? $ : window.$);
-
-}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
-
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],35:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -47189,11 +47277,8 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],"underscore":[function(require,module,exports){
-module.exports=require('9eM++n');
 },{}],"9eM++n":[function(require,module,exports){
 (function (global){
-(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 //     Underscore.js 1.6.0
 //     http://underscorejs.org
@@ -48543,9 +48628,3269 @@ module.exports=require('9eM++n');
 
 }).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
-; browserify_shim__define__module__export__(typeof _ != "undefined" ? _ : window._);
-
-}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
-
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[5])
+},{}],"underscore":[function(require,module,exports){
+module.exports=require('9eM++n');
+},{}],37:[function(require,module,exports){
+/*global angular*/
+
+/**
+ * @see: http://blog.parkji.co.uk/2013/08/11/native-drag-and-drop-in-angularjs.html
+ */
+angular.module('gaudiBuilder').directive('draggable', function () {
+    'use strict';
+
+    return function (scope, element) {
+        // this gives us the native JS object
+        var el = element[0];
+        el.draggable = true;
+
+        el.addEventListener('dragstart', function (e) {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('id', this.id);
+            this.classList.add('drag');
+
+            return false;
+        }, false);
+
+        el.addEventListener('dragend', function () {
+            this.classList.remove('drag');
+
+            return false;
+        }, false);
+    };
+});
+
+},{}],38:[function(require,module,exports){
+/*global angular,document*/
+
+angular.module('gaudiBuilder').directive('droppable', function () {
+    'use strict';
+
+    return {
+        scope: {
+            droppable: '='
+        },
+        link: function (scope, element) {
+            var el = element[0];
+
+            el.addEventListener('dragover', function (e) {
+                e.dataTransfer.dropEffect = 'move';
+
+                if (e.preventDefault) {
+                    e.preventDefault();
+                }
+
+                return false;
+            }, false);
+
+            el.addEventListener('drop', function (e) {
+                // Stops some browsers from redirecting.
+                if (e.stopPropagation) {
+                    e.stopPropagation();
+                }
+
+                var elementDropped = document.getElementById(e.dataTransfer.getData('id')),
+                    dropMethod = scope.droppable;
+
+                // call the drop passed drop function
+                if (typeof dropMethod === 'function') {
+                    scope.droppable(elementDropped, element[0], e);
+                }
+
+                return false;
+            }, false);
+        }
+    };
+});
+
+},{}],39:[function(require,module,exports){
+/*global $,joint,_,g,module*/
+
+var joint = require('jointjs');
+
+joint.shapes.html = {};
+
+joint.shapes.html.GaudiGraphComponent = joint.shapes.basic.Rect.extend({
+    defaults: joint.util.deepSupplement({
+        type: 'html.Element',
+        attrs: {
+            rect: { stroke: 'none', 'fill-opacity': 0 }
+        }
+    }, joint.shapes.basic.Rect.prototype.defaults)
+});
+
+joint.shapes.html.ElementView = joint.dia.ElementView.extend({
+
+    link: null,
+    canUpdateLink: false,
+
+    template: [
+        '<div class="component">',
+        '<div class="element">',
+        '<span class="image"></span>',
+        '<span class="name"></span>',
+        '</div>',
+        '<div class="tools">',
+        '<button class="edit glyphicon glyphicon-wrench" data-container="body"></button>',
+        '<div class="create-link glyphicon glyphicon-record"></div>',
+        '<button class="close">&times;</button>',
+        '</div>',
+        '</div>'
+    ].join(''),
+
+    initialize: function () {
+        _.bindAll(this, 'updateBox');
+        joint.dia.ElementView.prototype.initialize.apply(this, arguments);
+
+        this.$box = $(_.template(this.template)());
+
+        this.model.on('change', this.updateBox, this);
+        this.model.on('remove', this.removeBox, this);
+
+        this.updateBox();
+    },
+    render: function () {
+        joint.dia.ElementView.prototype.render.apply(this, arguments);
+        this.paper.$el.prepend(this.$box);
+        this.updateBox();
+
+        this.$box.find('.create-link').on('mousedown', this.createLink.bind(this));
+        this.$box.find('.edit').on('click', this.triggerOpenDetail.bind(this));
+        this.$box.find('.close').on('click', _.bind(this.model.remove, this.model));
+        this.$box.attr('data-type', this.model.get('componentType'));
+        this.$box.find('.image').html('<img alt="MySQL" src="' + this.model.get('logo') + '">');
+        this.$box.find('.name').html(this.model.get('name'));
+
+        this.paper.$el.mousemove(this.onMouseMove.bind(this));
+        this.paper.$el.mouseup(this.onMouseUp.bind(this));
+
+        this.updateName();
+
+        return this;
+    },
+
+    updateName: function () {
+        this.$box.find('.name').html(this.model.get('name'));
+    },
+
+    updateBox: function () {
+        var bbox = this.model.getBBox();
+
+        this.updateName();
+
+        this.$box.css({ width: bbox.width, height: bbox.height, left: bbox.x, top: bbox.y, transform: 'rotate(' + (this.model.get('angle') || 0) + 'deg)' });
+    },
+
+    removeBox: function (evt) {
+        this.model.trigger('onRemove');
+
+        this.$box.remove();
+    },
+
+    triggerOpenDetail: function (e) {
+        e.preventDefault();
+
+        this.model.trigger('onOpenDetail');
+    },
+
+    createLink: function (evt) {
+        var self = this,
+            paperOffset = this.paper.$el.offset(),
+            targetOffset = $(evt.target).offset(),
+            x = targetOffset.left - paperOffset.left,
+            y = targetOffset.top  - paperOffset.top;
+
+        this.link = new joint.dia.Link({
+            source: {id: this.model.get('id')},
+            target: g.point(x, y),
+            z: -1,
+            attrs: {
+                '.connection': { stroke: '#49ae80', 'stroke-width': 6, opacity: 0.5 },
+                '.marker-target': { stroke: '#49ae80', fill: '#49ae80', 'stroke-width': 2, d: 'M 10 0 L 0 5 L 10 10 z' },
+                '.marker-source': { stroke: '#49ae80', fill: '#49ae80', 'stroke-width': 2, d: 'M 10 0 L 0 5 L 10 10 z' },
+                '.marker-vertices': {display: 'none'}
+            }
+        });
+        this.paper.model.addCell(this.link);
+
+        // marker arrow color change
+        this.link.on('remove', function (lnk) {
+            self.model.trigger('removeLink', lnk.get('source').id, lnk.get('target').id);
+        });
+
+        this.link.on('change:target', function (lnk) {
+            var target = lnk.get('target');
+
+            // Check if the second arrow is uppon a rect at the first d&d (at the second jointjs will handle it correctly)
+            if (typeof (target.id) === 'undefined') {
+                var rect = self.paper.findViewsFromPoint(g.point(target.x, target.y))[0];
+                if (!rect || lnk.get('source').id === rect.model.get('id')) {
+                    return;
+                }
+
+                target = rect;
+                target.$el.addClass('arrowOver');
+                lnk.set('target', {id: target.model.get('id')});
+                return;
+            }
+
+            self.model.trigger('createLink', target.id);
+        });
+
+        this.canUpdateLink = true;
+    },
+
+    onMouseUp: function () {
+        this.canUpdateLink = false;
+        this.paper.$el.find('.component').css("z-index", 1);
+    },
+
+    onMouseMove: function (evt) {
+        if (!this.link || !this.canUpdateLink || evt.offsetX <= 10) {
+            return;
+        }
+
+        this.link.set('target', g.point(evt.offsetX, evt.offsetY));
+    }
+});
+
+module.exports = joint.shapes.html.GaudiGraphComponent;
+
+},{"jointjs":41}],40:[function(require,module,exports){
+/*global require,module*/
+
+var joint = require('jointjs');
+var graph = new joint.dia.Graph();
+
+module.exports = graph;
+
+},{"jointjs":41}],41:[function(require,module,exports){
+var geometry    = require('joint/src/geometry');
+var graph       = require('joint/src/joint.dia.graph');
+var link        = require('joint/src/joint.dia.link');
+var element     = require('joint/src/joint.dia.element');
+var vectorizer  = require('vectorizer');
+window.g        = geometry.g;
+
+require('jquery.sortElements');
+
+window.joint = {
+    dia: {
+        Graph: graph.Graph,
+        Link: link.Link,
+        LinkView: link.LinkView,
+        Element: element.Element,
+        ElementView: element.ElementView
+    },
+    util: require('joint/src/core').util,
+    shapes: require('joint/plugins/shapes')
+};
+
+require('joint/src/joint.dia.paper');
+
+module.exports = window.joint;
+
+},{"joint/plugins/shapes":46,"joint/src/core":47,"joint/src/geometry":48,"joint/src/joint.dia.element":49,"joint/src/joint.dia.graph":50,"joint/src/joint.dia.link":51,"joint/src/joint.dia.paper":52,"jquery.sortElements":"BU4qJ2","vectorizer":"k3mQBb"}],42:[function(require,module,exports){
+/*global require,module,document,$*/
+
+var joint = require('jointjs');
+var graph = require('jointjs/graph');
+
+var paper = new joint.dia.Paper({
+    el: document.getElementById('graphContainer'),
+    width: '100%',
+    height: $('.sidebar').height(),
+    gridSize: 1,
+    model: graph
+});
+
+module.exports = paper;
+
+},{"jointjs":41,"jointjs/graph":40}],43:[function(require,module,exports){
+/*global require,angular*/
+
+angular.module('gaudiBuilder').service('componentFetcher', function ($q, $http) {
+    'use strict';
+
+    var availableComponents = null;
+
+    /**
+     * Retrieve all components
+     *
+     * @returns {promise}
+     */
+    function getAllComponents() {
+        var deferred = $q.defer();
+
+        if (availableComponents) {
+            deferred.resolve(availableComponents);
+        } else {
+            $http.get('data/components.json').success(function (data) {
+                availableComponents = data;
+
+                deferred.resolve(data);
+            });
+        }
+
+        return deferred.promise;
+    }
+
+    return {
+        getAllComponents: getAllComponents
+    };
+});
+
+},{}],44:[function(require,module,exports){
+/*global angular, require*/
+
+angular.module('gaudiBuilder').factory('selectedComponents', function () {
+    'use strict';
+
+    var components = {};
+
+    /**
+     * Return a name available for a component
+     *
+     * @param {String} type
+     * @returns {String}
+     */
+    function getElementName(type) {
+        type = type.replace('-', '_');
+        if (components[type] === undefined) {
+            return type;
+        }
+
+        var parts = type.split('_'),
+            nbParts = parts.length,
+            newName;
+
+        if (nbParts > 1 && parseInt(parts[nbParts - 1], 10) > 0) {
+            newName = parts.slice(0, nbParts - 1).join('_') + '_' + (Number(parts[nbParts - 1]) + 1);
+        } else {
+            newName = type + '_' + 1;
+        }
+
+        return getElementName(newName);
+    }
+
+    return {
+        components: components,
+        getElementName: getElementName
+    };
+});
+
+},{}],45:[function(require,module,exports){
+/*global angular,require,_,YamlEscaper*/
+
+var yaml = require('yamljs/bin/yaml');
+
+YamlEscaper.prototype.requiresSingleQuoting = function () {
+    'use strict';
+
+    return false;
+};
+
+angular.module('gaudiBuilder').service('yamlParser', function () {
+    'use strict';
+
+    /**
+     * Parse values like "80: 80, 8080: 8080" to [{80: 80}, {8080: 80}]
+     *
+     * @param {String} map
+     * @return {Array}
+     */
+    function parseMapValue(map) {
+        var results = {},
+            rawValues = map.split(','),
+            key,
+            value,
+            mapDetails;
+
+        angular.forEach(rawValues, function (rawValue) {
+            mapDetails = rawValue.split(':');
+
+            key = mapDetails[0].trim();
+            value = mapDetails[1].trim();
+
+            if (/^\d+$/.test(value)) {
+                value = parseInt(value, 10);
+            }
+
+            if (/^\d+$/.test(key)) {
+                key = parseInt(key, 10);
+            }
+
+            results[key] = value;
+        });
+
+        return results;
+    }
+
+    /**
+     * Remove empty objects recursively from another object
+     *
+     * @param {Object} object
+     * @returns {Object}
+     */
+    function cleanEmptyObjects(object) {
+        if (_.isEmpty(object)) {
+            return '';
+        }
+
+        for (var prop in object) {
+            if (!object.hasOwnProperty(prop) || typeof object[prop] !== 'object') {
+                continue;
+            }
+
+            if (prop === 'standard') {
+                delete object[prop];
+                continue;
+            }
+
+            object[prop] = cleanEmptyObjects(object[prop]);
+            if (_.isEmpty(object[prop])) {
+                delete object[prop];
+            }
+        }
+
+        return object;
+    }
+
+    /**
+     * Dump an Object to a YAML string
+     *
+     * @param {Object} object
+     * @param {Number} depth
+     * @returns {String}
+     */
+    function dump(object, depth) {
+        if (_.isEmpty(object)) {
+            return '';
+        }
+
+        return yaml.stringify(object, depth);
+    }
+
+    return {
+        parseMapValue: parseMapValue,
+        cleanEmptyObjects: cleanEmptyObjects,
+        dump: dump
+    };
+});
+
+},{"yamljs/bin/yaml":53}],46:[function(require,module,exports){
+module.exports=require(24)
+},{"./joint.shapes.basic":16,"./joint.shapes.chess":17,"./joint.shapes.devs":18,"./joint.shapes.erd":19,"./joint.shapes.fsa":20,"./joint.shapes.org":21,"./joint.shapes.pn":22,"./joint.shapes.uml":23}],47:[function(require,module,exports){
+module.exports=require(25)
+},{"lodash":34}],48:[function(require,module,exports){
+module.exports=require(26)
+},{}],49:[function(require,module,exports){
+module.exports=require(28)
+},{"./core":25,"./joint.dia.cell":27,"backbone":12,"lodash":34}],50:[function(require,module,exports){
+//      JointJS, the JavaScript diagramming library.
+//      (c) 2011-2013 client IO
+
+
+if (typeof exports === 'object') {
+
+    var joint = {
+        dia: {
+            Link: require('./joint.dia.link').Link,
+            Element: require('./joint.dia.element').Element
+        },
+        shapes: require('../plugins/shapes')
+    };
+    var Backbone = require('backbone');
+    var _ = require('lodash');
+    var g = require('./geometry').g;
+}
+
+
+
+joint.dia.GraphCells = Backbone.Collection.extend({
+
+    initialize: function() {
+        
+        // Backbone automatically doesn't trigger re-sort if models attributes are changed later when
+        // they're already in the collection. Therefore, we're triggering sort manually here.
+        this.on('change:z', this.sort, this);
+    },
+
+    model: function(attrs, options) {
+
+        if (attrs.type === 'link') {
+
+            return new joint.dia.Link(attrs, options);
+        }
+
+        var module = attrs.type.split('.')[0];
+        var entity = attrs.type.split('.')[1];
+
+        if (joint.shapes[module] && joint.shapes[module][entity]) {
+
+            return new joint.shapes[module][entity](attrs, options);
+        }
+        
+        return new joint.dia.Element(attrs, options);
+    },
+
+    // `comparator` makes it easy to sort cells based on their `z` index.
+    comparator: function(model) {
+
+        return model.get('z') || 0;
+    },
+
+    // Get all inbound and outbound links connected to the cell `model`.
+    getConnectedLinks: function(model, opt) {
+
+        opt = opt || {};
+
+        if (_.isUndefined(opt.inbound) && _.isUndefined(opt.outbound)) {
+            opt.inbound = opt.outbound = true;
+        }
+
+        var links = [];
+        
+        this.each(function(cell) {
+
+            var source = cell.get('source');
+            var target = cell.get('target');
+
+            if (source && source.id === model.id && opt.outbound) {
+                
+                links.push(cell);
+            }
+
+            if (target && target.id === model.id && opt.inbound) {
+
+                links.push(cell);
+            }
+        });
+
+        return links;
+    }
+});
+
+
+joint.dia.Graph = Backbone.Model.extend({
+
+    initialize: function() {
+
+        this.set('cells', new joint.dia.GraphCells);
+
+        // Make all the events fired in the `cells` collection available.
+        // to the outside world.
+        this.get('cells').on('all', this.trigger, this);
+        
+        this.get('cells').on('remove', this.removeCell, this);
+    },
+
+    toJSON: function() {
+
+        // Backbone does not recursively call `toJSON()` on attributes that are themselves models/collections.
+        // It just clones the attributes. Therefore, we must call `toJSON()` on the cells collection explicitely.
+        var json = Backbone.Model.prototype.toJSON.apply(this, arguments);
+        json.cells = this.get('cells').toJSON();
+        return json;
+    },
+
+    fromJSON: function(json) {
+
+        if (!json.cells) {
+
+            throw new Error('Graph JSON must contain cells array.');
+        }
+
+        var attrs = json;
+
+        // Cells are the only attribute that is being set differently, using `cells.add()`.
+        var cells = json.cells;
+        delete attrs.cells;
+        
+        this.set(attrs);
+        
+        this.resetCells(cells);
+    },
+
+    clear: function() {
+
+        this.get('cells').remove(this.get('cells').models);
+    },
+
+    _prepareCell: function(cell) {
+
+        if (cell instanceof Backbone.Model && _.isUndefined(cell.get('z'))) {
+
+            cell.set('z', this.get('cells').length, { silent: true });
+            
+        } else if (_.isUndefined(cell.z)) {
+
+            cell.z = this.get('cells').length;
+        }
+
+        return cell;
+    },
+    
+    addCell: function(cell, options) {
+
+        if (_.isArray(cell)) {
+
+            return this.addCells(cell, options);
+        }
+
+        this.get('cells').add(this._prepareCell(cell), options || {});
+
+        return this;
+    },
+
+    addCells: function(cells, options) {
+
+        _.each(cells, function(cell) { this.addCell(cell, options); }, this);
+
+        return this;
+    },
+
+    // When adding a lot of cells, it is much more efficient to
+    // reset the entire cells collection in one go.
+    // Useful for bulk operations and optimizations.
+    resetCells: function(cells) {
+        
+        this.get('cells').reset(_.map(cells, this._prepareCell, this));
+
+        return this;
+    },
+
+    removeCell: function(cell, collection, options) {
+
+        // Applications might provide a `disconnectLinks` option set to `true` in order to
+        // disconnect links when a cell is removed rather then removing them. The default
+        // is to remove all the associated links.
+        if (options && options.disconnectLinks) {
+            
+            this.disconnectLinks(cell);
+
+        } else {
+
+            this.removeLinks(cell);
+        }
+
+        // Silently remove the cell from the cells collection. Silently, because
+        // `joint.dia.Cell.prototype.remove` already triggers the `remove` event which is
+        // then propagated to the graph model. If we didn't remove the cell silently, two `remove` events
+        // would be triggered on the graph model.
+        this.get('cells').remove(cell, { silent: true });
+    },
+
+    // Get a cell by `id`.
+    getCell: function(id) {
+
+        return this.get('cells').get(id);
+    },
+
+    getElements: function() {
+
+        return this.get('cells').filter(function(cell) {
+
+            return cell instanceof joint.dia.Element;
+        });
+    },
+    
+    getLinks: function() {
+
+        return this.get('cells').filter(function(cell) {
+
+            return cell instanceof joint.dia.Link;
+        });
+    },
+
+    // Get all inbound and outbound links connected to the cell `model`.
+    getConnectedLinks: function(model, opt) {
+
+        return this.get('cells').getConnectedLinks(model, opt);
+    },
+
+    getNeighbors: function(el) {
+
+        var links = this.getConnectedLinks(el);
+        var neighbors = [];
+        var cells = this.get('cells');
+        
+        _.each(links, function(link) {
+
+            var source = link.get('source');
+            var target = link.get('target');
+
+            // Discard if it is a point.
+            if (!source.x) {
+                var sourceElement = cells.get(source.id);
+                if (sourceElement !== el) {
+
+                    neighbors.push(sourceElement);
+                }
+            }
+            if (!target.x) {
+                var targetElement = cells.get(target.id);
+                if (targetElement !== el) {
+
+                    neighbors.push(targetElement);
+                }
+            }
+        });
+
+        return neighbors;
+    },
+    
+    // Disconnect links connected to the cell `model`.
+    disconnectLinks: function(model) {
+
+        _.each(this.getConnectedLinks(model), function(link) {
+
+            link.set(link.get('source').id === model.id ? 'source' : 'target', g.point(0, 0));
+        });
+    },
+
+    // Remove links connected to the cell `model` completely.
+    removeLinks: function(model) {
+
+        _.invoke(this.getConnectedLinks(model), 'remove');
+    },
+
+    // Find all views at given point
+    findModelsFromPoint: function(p) {
+
+	return _.filter(this.getElements(), function(el) {
+	    return el.getBBox().containsPoint(p);
+	});
+    },
+
+
+    // Find all views in given area
+    findModelsInArea: function(r) {
+
+	return _.filter(this.getElements(), function(el) {
+	    return el.getBBox().intersect(r);
+	});
+    }
+
+});
+
+
+if (typeof exports === 'object') {
+
+    module.exports.Graph = joint.dia.Graph;
+}
+},{"../plugins/shapes":24,"./geometry":26,"./joint.dia.element":28,"./joint.dia.link":29,"backbone":12,"lodash":34}],51:[function(require,module,exports){
+module.exports=require(29)
+},{"./geometry":26,"./joint.dia.cell":27,"backbone":12,"lodash":34}],52:[function(require,module,exports){
+//      JointJS library.
+//      (c) 2011-2013 client IO
+
+
+joint.dia.Paper = Backbone.View.extend({
+
+    options: {
+
+        width: 800,
+        height: 600,
+        gridSize: 50,
+        perpendicularLinks: false,
+        elementView: joint.dia.ElementView,
+        linkView: joint.dia.LinkView,
+        snapLinks: false, // false, true, { radius: value }
+
+        // Defines what link model is added to the graph after an user clicks on an active magnet.
+        // Value could be the Backbone.model or a function returning the Backbone.model
+        // defaultLink: function(elementView, magnet) { return condition ? new customLink1() : new customLink2() }
+        defaultLink: new joint.dia.Link,
+
+        // Check whether to add a new link to the graph when user clicks on an a magnet.
+        validateMagnet: function(cellView, magnet) {
+            return magnet.getAttribute('magnet') !== 'passive';
+        },
+
+        // Check whether to allow or disallow the link connection while an arrowhead end (source/target)
+        // being changed.
+        validateConnection: function(cellViewS, magnetS, cellViewT, magnetT, end, linkView) {
+            return (end === 'target' ? cellViewT : cellViewS) instanceof joint.dia.ElementView;
+        }
+    },
+
+    events: {
+
+        'mousedown': 'pointerdown',
+        'dblclick': 'mousedblclick',
+        'touchstart': 'pointerdown',
+        'mousemove': 'pointermove',
+        'touchmove': 'pointermove',
+        'click': 'mouseclick'
+    },
+
+    initialize: function() {
+
+        _.bindAll(this, 'addCell', 'sortCells', 'resetCells', 'pointerup');
+
+        this.svg = V('svg').node;
+        this.viewport = V('g').node;
+
+        // Append `<defs>` element to the SVG document. This is useful for filters and gradients.
+        V(this.svg).append(V('defs').node);
+
+        V(this.viewport).attr({ 'class': 'viewport' });
+        
+        V(this.svg).append(this.viewport);
+
+        this.$el.append(this.svg);
+
+        this.setDimensions();
+
+        this.listenTo(this.model, 'add', this.addCell);
+        this.listenTo(this.model, 'reset', this.resetCells);
+        this.listenTo(this.model, 'sort', this.sortCells);
+
+        $(document).on('mouseup touchend', this.pointerup);
+
+        // Hold the value when mouse has been moved: when mouse moved, no click event will be triggered
+        this._mousemoved =  false;
+    },
+
+
+    remove: function() {
+
+	$(document).off('mouseup touchend', this.pointerup);
+
+	Backbone.View.prototype.remove.call(this);
+    },
+
+    setDimensions: function(width, height) {
+
+        if (width) this.options.width = width;
+        if (height) this.options.height = height;
+        
+        V(this.svg).attr('width', this.options.width);
+        V(this.svg).attr('height', this.options.height);
+
+	this.trigger('resize');
+    },
+
+    // Expand/shrink the paper to fit the content. Snap the width/height to the grid
+    // defined in `gridWidth`, `gridHeight`. `padding` adds to the resulting width/height of the paper.
+    fitToContent: function(gridWidth, gridHeight, padding) {
+
+	gridWidth = gridWidth || 1;
+	gridHeight = gridHeight || 1;
+        padding = padding || 0;
+
+	// Calculate the paper size to accomodate all the graph's elements.
+	var bbox = V(this.viewport).bbox(true, this.svg);
+
+	var calcWidth = Math.ceil((bbox.width + bbox.x) / gridWidth) * gridWidth;
+	var calcHeight = Math.ceil((bbox.height + bbox.y) / gridHeight) * gridHeight;
+
+        calcWidth += padding;
+        calcHeight += padding;
+        
+	// Change the dimensions only if there is a size discrepency
+	if (calcWidth != this.options.width || calcHeight != this.options.height) {
+	    this.setDimensions(calcWidth || this.options.width , calcHeight || this.options.height);
+	}
+    },
+
+    getContentBBox: function() {
+
+        var crect = this.viewport.getBoundingClientRect();
+
+        // Using Screen CTM was the only way to get the real viewport bounding box working in both
+        // Google Chrome and Firefox.
+        var ctm = this.viewport.getScreenCTM();
+
+        var bbox = g.rect(Math.abs(crect.left - ctm.e), Math.abs(crect.top - ctm.f), crect.width, crect.height);
+
+        return bbox;
+    },
+
+    createViewForModel: function(cell) {
+
+        var view;
+        
+        var type = cell.get('type');
+        var module = type.split('.')[0];
+        var entity = type.split('.')[1];
+
+        // If there is a special view defined for this model, use that one instead of the default `elementView`/`linkView`.
+        if (joint.shapes[module] && joint.shapes[module][entity + 'View']) {
+
+            view = new joint.shapes[module][entity + 'View']({ model: cell, interactive: this.options.interactive });
+            
+        } else if (cell instanceof joint.dia.Element) {
+                
+            view = new this.options.elementView({ model: cell, interactive: this.options.interactive });
+
+        } else {
+
+            view = new this.options.linkView({ model: cell, interactive: this.options.interactive });
+        }
+
+        return view;
+    },
+    
+    addCell: function(cell) {
+
+        var view = this.createViewForModel(cell);
+
+        V(this.viewport).append(view.el);
+        view.paper = this;
+        view.render();
+
+        // This is the only way to prevent image dragging in Firefox that works.
+        // Setting -moz-user-select: none, draggable="false" attribute or user-drag: none didn't help.
+        $(view.el).find('image').on('dragstart', function() { return false; });
+    },
+
+    resetCells: function(cellsCollection) {
+
+        $(this.viewport).empty();
+
+        var cells = cellsCollection.models.slice();
+
+        // Make sure links are always added AFTER elements.
+        // They wouldn't find their sources/targets in the DOM otherwise.
+        cells.sort(function(a, b) { return a instanceof joint.dia.Link ? 1 : -1; });
+        
+        _.each(cells, this.addCell, this);
+
+        // Sort the cells in the DOM manually as we might have changed the order they
+        // were added to the DOM (see above).
+        this.sortCells();
+    },
+
+    sortCells: function() {
+
+        // Run insertion sort algorithm in order to efficiently sort DOM elements according to their
+        // associated model `z` attribute.
+
+        var $cells = $(this.viewport).children('[model-id]');
+        var cells = this.model.get('cells');
+
+        // Using the jquery.sortElements plugin by Padolsey.
+        // See http://james.padolsey.com/javascript/sorting-elements-with-jquery/.
+        $cells.sortElements(function(a, b) {
+
+            var cellA = cells.get($(a).attr('model-id'));
+            var cellB = cells.get($(b).attr('model-id'));
+            
+            return (cellA.get('z') || 0) > (cellB.get('z') || 0) ? 1 : -1;
+        });
+    },
+
+    scale: function(sx, sy, ox, oy) {
+
+        if (!ox) {
+
+            ox = 0;
+            oy = 0;
+        }
+
+        // Remove previous transform so that the new scale is not affected by previous scales, especially
+        // the old translate() does not affect the new translate if an origin is specified.
+        V(this.viewport).attr('transform', '');
+        
+        // TODO: V.scale() doesn't support setting scale origin. #Fix        
+        if (ox || oy) {
+            V(this.viewport).translate(-ox * (sx - 1), -oy * (sy - 1));
+        }
+        
+        V(this.viewport).scale(sx, sy);
+
+	this.trigger('scale', ox, oy);
+
+        return this;
+    },
+
+    rotate: function(deg, ox, oy) {
+        
+        // If the origin is not set explicitely, rotate around the center. Note that
+        // we must use the plain bounding box (`this.el.getBBox()` instead of the one that gives us
+        // the real bounding box (`bbox()`) including transformations).
+        if (_.isUndefined(ox)) {
+
+            var bbox = this.viewport.getBBox();
+            ox = bbox.width/2;
+            oy = bbox.height/2;
+        }
+
+        V(this.viewport).rotate(deg, ox, oy);
+    },
+
+    // Find the first view climbing up the DOM tree starting at element `el`. Note that `el` can also
+    // be a selector or a jQuery object.
+    findView: function(el) {
+
+        var $el = this.$(el);
+
+        if ($el.length === 0 || $el[0] === this.el) {
+
+            return undefined;
+        }
+
+        if ($el.data('view')) {
+
+            return $el.data('view');
+        }
+
+        return this.findView($el.parent());
+    },
+
+    // Find a view for a model `cell`. `cell` can also be a string representing a model `id`.
+    findViewByModel: function(cell) {
+
+        var id = _.isString(cell) ? cell : cell.id;
+        
+        var $view = this.$('[model-id="' + id + '"]');
+        if ($view.length) {
+
+            return $view.data('view');
+        }
+        return undefined;
+    },
+
+    // Find all views at given point
+    findViewsFromPoint: function(p) {
+
+	p = g.point(p);
+
+        var views = _.map(this.model.getElements(), this.findViewByModel);
+
+	return _.filter(views, function(view) {
+	    return g.rect(V(view.el).bbox(false, this.viewport)).containsPoint(p);
+	}, this);
+    },
+
+    // Find all views in given area
+    findViewsInArea: function(r) {
+
+	r = g.rect(r);
+
+        var views = _.map(this.model.getElements(), this.findViewByModel);
+
+	return _.filter(views, function(view) {
+	    return r.intersect(g.rect(V(view.el).bbox(false, this.viewport)));
+	}, this);
+    },
+
+    getModelById: function(id) {
+
+        return this.model.getCell(id);
+    },
+
+    snapToGrid: function(p) {
+
+        // Convert global coordinates to the local ones of the `viewport`. Otherwise,
+        // improper transformation would be applied when the viewport gets transformed (scaled/rotated). 
+        var localPoint = V(this.viewport).toLocalPoint(p.x, p.y);
+
+        return {
+            x: g.snapToGrid(localPoint.x, this.options.gridSize),
+            y: g.snapToGrid(localPoint.y, this.options.gridSize)
+        };
+    },
+
+    getDefaultLink: function(cellView, magnet) {
+
+        return _.isFunction(this.options.defaultLink)
+        // default link is a function producing link model
+            ? this.options.defaultLink.call(this, cellView, magnet)
+        // default link is the Backbone model
+            : this.options.defaultLink.clone();
+    },
+
+    // Interaction.
+    // ------------
+
+    mouseclick: function(evt) {
+
+        // Trigger Event when mouse not moved
+        if (!this._mousemoved) {
+            evt.preventDefault();
+            evt = joint.util.normalizeEvent(evt);
+
+            var view = this.findView(evt.target);
+            var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+
+            if (view) {
+
+                view.pointerclick(evt, localPoint.x, localPoint.y);
+            } else {
+
+                this.trigger('blank:pointerclick', evt, localPoint.x, localPoint.y);
+            }
+        }
+
+        this._mousemoved = false;
+    },
+
+    mousedblclick: function(evt) {
+        
+        evt.preventDefault();
+        evt = joint.util.normalizeEvent(evt);
+        
+        var view = this.findView(evt.target);
+        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+
+        if (view) {
+            
+            view.pointerdblclick(evt, localPoint.x, localPoint.y);
+            
+        } else {
+            
+            this.trigger('blank:pointerdblclick', evt, localPoint.x, localPoint.y);
+        }
+    },
+
+    pointerdown: function(evt) {
+
+        evt.preventDefault();
+        evt = joint.util.normalizeEvent(evt);
+        
+        var view = this.findView(evt.target);
+
+        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+        
+        if (view) {
+
+            this.sourceView = view;
+
+            view.pointerdown(evt, localPoint.x, localPoint.y);
+            
+        } else {
+
+            this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
+        }
+    },
+
+    pointermove: function(evt) {
+
+        evt.preventDefault();
+        evt = joint.util.normalizeEvent(evt);
+
+
+        if (this.sourceView) {
+            // Mouse moved the view
+            this._mousemoved = true;
+
+            var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+
+            this.sourceView.pointermove(evt, localPoint.x, localPoint.y);
+        }
+    },
+
+    pointerup: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+        
+        if (this.sourceView) {
+
+            this.sourceView.pointerup(evt, localPoint.x, localPoint.y);
+
+            //"delete sourceView" occasionally throws an error in chrome (illegal access exception)
+	    this.sourceView = null;
+
+        } else {
+
+            this.trigger('blank:pointerup', evt, localPoint.x, localPoint.y);
+        }
+    }
+});
+
+},{}],53:[function(require,module,exports){
+/*
+Copyright (c) 2010 Jeremy Faivre
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is furnished
+to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+(function(){
+/**
+ * Exception class thrown when an error occurs during parsing.
+ *
+ * @author Fabien Potencier <fabien@symfony.com>
+ *
+ * @api
+ */
+ 
+/**
+ * Constructor.
+ *
+ * @param string	message	The error message
+ * @param integer   parsedLine The line where the error occurred
+ * @param integer   snippet	The snippet of code near the problem
+ * @param string	parsedFile The file name where the error occurred
+ */
+
+var YamlParseException = function(message, parsedLine, snippet, parsedFile){
+
+		this.rawMessage = message;
+		this.parsedLine = (parsedLine !== undefined) ? parsedLine : -1;
+		this.snippet = (snippet !== undefined) ? snippet : null;
+		this.parsedFile = (parsedFile !== undefined) ? parsedFile : null;
+
+		this.updateRepr();
+		
+		this.message = message;
+
+};
+YamlParseException.prototype =
+{
+
+	name: 'YamlParseException',
+	message: null,
+	
+	parsedFile: null,
+	parsedLine: -1,
+	snippet: null,
+	rawMessage: null,
+
+	isDefined: function(input)
+	{
+		return input != undefined && input != null;
+	},
+
+	/**
+	* Gets the snippet of code near the error.
+	*
+	* @return string The snippet of code
+	*/
+	getSnippet: function()
+	{
+		return this.snippet;
+	},
+
+	/**
+	* Sets the snippet of code near the error.
+	*
+	* @param string snippet The code snippet
+	*/
+	setSnippet: function(snippet)
+	{
+		this.snippet = snippet;
+
+		this.updateRepr();
+	},
+
+	/**
+	* Gets the filename where the error occurred.
+	*
+	* This method returns null if a string is parsed.
+	*
+	* @return string The filename
+	*/
+	getParsedFile: function()
+	{
+		return this.parsedFile;
+	},
+
+	/**
+	* Sets the filename where the error occurred.
+	*
+	* @param string parsedFile The filename
+	*/
+	setParsedFile: function(parsedFile)
+	{
+		this.parsedFile = parsedFile;
+
+		this.updateRepr();
+	},
+
+	/**
+	* Gets the line where the error occurred.
+	*
+	* @return integer The file line
+	*/
+	getParsedLine: function()
+	{
+		return this.parsedLine;
+	},
+
+	/**
+	* Sets the line where the error occurred.
+	*
+	* @param integer parsedLine The file line
+	*/
+	setParsedLine: function(parsedLine)
+	{
+		this.parsedLine = parsedLine;
+
+		this.updateRepr();
+	},
+
+	updateRepr: function()
+	{
+		this.message = this.rawMessage;
+
+		var dot = false;
+		if ('.' === this.message.charAt(this.message.length - 1)) {
+			this.message = this.message.substring(0, this.message.length - 1);
+			dot = true;
+		}
+
+		if (null !== this.parsedFile) {
+			this.message += ' in ' + JSON.stringify(this.parsedFile);
+		}
+
+		if (this.parsedLine >= 0) {
+			this.message += ' at line ' + this.parsedLine;
+		}
+
+		if (this.snippet) {
+			this.message += ' (near "' + this.snippet + '")';
+		}
+
+		if (dot) {
+			this.message += '.';
+		}
+	}
+}
+/**
+ * Yaml offers convenience methods to parse and dump YAML.
+ *
+ * @author Fabien Potencier <fabien@symfony.com>
+ *
+ * @api
+ */
+
+var YamlRunningUnderNode = false;
+var Yaml = function(){};
+Yaml.prototype =
+{
+
+	/**
+	 * Parses YAML into a JS representation.
+	 *
+	 * The parse method, when supplied with a YAML stream (file),
+	 * will do its best to convert YAML in a file into a JS representation.
+	 *
+	 *	Usage:
+	 *	<code>
+	 *	 obj = yaml.parseFile('config.yml');
+	 *	</code>
+	 *
+	 * @param string input Path of YAML file
+	 *
+	 * @return array The YAML converted to a JS representation
+	 *
+	 * @throws YamlParseException If the YAML is not valid
+	 */
+	parseFile: function(file /* String */, callback /* Function */)
+	{
+		if ( callback == null )
+		{
+			var input = this.getFileContents(file);
+			var ret = null;
+			try
+			{
+				ret = this.parse(input);
+			}
+			catch ( e )
+			{
+				if ( e instanceof YamlParseException ) {
+					e.setParsedFile(file);
+				}
+				throw e;
+			}
+			return ret;
+		}
+		
+		this.getFileContents(file, function(data)
+		{
+			callback(new Yaml().parse(data));
+		});
+	},
+
+	/**
+	 * Parses YAML into a JS representation.
+	 *
+	 * The parse method, when supplied with a YAML stream (string),
+	 * will do its best to convert YAML into a JS representation.
+	 *
+	 *	Usage:
+	 *	<code>
+	 *	 obj = yaml.parse(...);
+	 *	</code>
+	 *
+	 * @param string input string containing YAML
+	 *
+	 * @return array The YAML converted to a JS representation
+	 *
+	 * @throws YamlParseException If the YAML is not valid
+	 */
+	parse: function(input /* String */)
+	{
+		var yaml = new YamlParser();
+
+		return yaml.parse(input);
+	},
+
+	/**
+	 * Dumps a JS representation to a YAML string.
+	 *
+	 * The dump method, when supplied with an array, will do its best
+	 * to convert the array into friendly YAML.
+	 *
+	 * @param array	 array JS representation
+	 * @param integer inline The level where you switch to inline YAML
+	 *
+	 * @return string A YAML string representing the original JS representation
+    *
+    * @api
+    */
+	dump: function(array, inline, spaces)
+	{
+		if ( inline == null ) inline = 2;
+
+		var yaml = new YamlDumper();
+		if (spaces) {
+		    yaml.numSpacesForIndentation = spaces;
+		}
+
+		return yaml.dump(array, inline);
+	},
+	
+	getXHR: function()
+	{
+		if ( window.XMLHttpRequest )
+			return new XMLHttpRequest();
+		 
+		if ( window.ActiveXObject )
+		{
+			var names = [
+			"Msxml2.XMLHTTP.6.0",
+			"Msxml2.XMLHTTP.3.0",
+			"Msxml2.XMLHTTP",
+			"Microsoft.XMLHTTP"
+			];
+			
+			for ( var i = 0; i < 4; i++ )
+			{
+				try{ return new ActiveXObject(names[i]); }
+				catch(e){}
+			}
+		}
+		return null;
+	},
+	
+	getFileContents: function(file, callback)
+	{
+	    if ( YamlRunningUnderNode )
+	    {
+	        var fs = require('fs');
+	        if ( callback == null )
+	        {
+	            var data = fs.readFileSync(file);
+	            if (data == null) return null;
+	            return ''+data;
+	        }
+	        else
+	        {
+	            fs.readFile(file, function(err, data)
+	            {
+	                if (err)
+	                    callback(null);
+	                else
+	                    callback(data);
+	            });
+	        }
+	    }
+	    else
+	    {
+    		var request = this.getXHR();
+		
+    		// Sync
+    		if ( callback == null )
+    		{
+    			request.open('GET', file, false);                  
+    			request.send(null);
+
+    			if ( request.status == 200 || request.status == 0 )
+    				return request.responseText;
+			
+    			return null;
+    		}
+		
+    		// Async
+    		request.onreadystatechange = function()
+    		{
+    			if ( request.readyState == 4 )
+    				if ( request.status == 200 || request.status == 0 )
+    					callback(request.responseText);
+    				else
+    					callback(null);
+    		};
+    		request.open('GET', file, true);                  
+    		request.send(null);
+	    }
+	}
+};
+
+var YAML =
+{
+	/*
+	 * @param integer inline The level where you switch to inline YAML
+	 */
+	 
+	stringify: function(input, inline, spaces)
+	{
+		return new Yaml().dump(input, inline, spaces);
+	},
+	
+	parse: function(input)
+	{
+		return new Yaml().parse(input);
+	},
+	
+	load: function(file, callback)
+	{
+		return new Yaml().parseFile(file, callback);
+	}
+};
+
+// Handle node.js case
+if (typeof exports !== 'undefined') {
+    if (typeof module !== 'undefined' && module.exports) {
+        exports = module.exports = YAML;
+        YamlRunningUnderNode = true;
+        
+        // Add require handler
+        (function () {
+            var require_handler = function (module, filename) {
+                // fill in result
+                module.exports = YAML.load(filename);
+            };
+
+            // register require extensions only if we're on node.js
+            // hack for browserify
+            if ( undefined !== require.extensions ) {
+                require.extensions['.yml'] = require_handler;
+                require.extensions['.yaml'] = require_handler;
+            }
+        }());
+    }
+}
+
+// Handle browser case
+if ( typeof(window) != "undefined" )
+{
+    window.YAML = YAML;
+}
+
+/**
+ * YamlInline implements a YAML parser/dumper for the YAML inline syntax.
+ */
+var YamlInline = function(){};
+YamlInline.prototype =
+{
+	i: null,
+	
+	/**
+	 * Convert a YAML string to a JS object.
+	 *
+	 * @param string value A YAML string
+	 *
+	 * @return object A JS object representing the YAML string
+	 */
+	parse: function(value)
+	{
+		var result = null;
+		value = this.trim(value);
+
+		if ( 0 == value.length )
+		{
+			return '';
+		}
+
+		switch ( value.charAt(0) )
+		{
+			case '[':
+				result = this.parseSequence(value);
+				break;
+			case '{':
+				result = this.parseMapping(value);
+				break;
+			default:
+				result = this.parseScalar(value);
+		}
+
+		// some comment can end the scalar
+		if ( value.substr(this.i+1).replace(/^\s*#.*$/, '') != '' ) {
+		    console.log("oups "+value.substr(this.i+1));
+			throw new YamlParseException('Unexpected characters near "'+value.substr(this.i)+'".');
+		}
+
+		return result;
+	},
+
+	/**
+	 * Dumps a given JS variable to a YAML string.
+	 *
+	 * @param mixed value The JS variable to convert
+	 *
+	 * @return string The YAML string representing the JS object
+	 */
+	dump: function(value)
+	{
+		if ( undefined == value || null == value )
+			return 'null';	
+		if ( value instanceof Date)
+			return value.toISOString();
+		if ( typeof(value) == 'object')
+			return this.dumpObject(value);
+		if ( typeof(value) == 'boolean' )
+			return value ? 'true' : 'false';
+		if ( /^\d+$/.test(value) )
+			return typeof(value) == 'string' ? "'"+value+"'" : parseInt(value);
+		if ( this.isNumeric(value) )
+			return typeof(value) == 'string' ? "'"+value+"'" : parseFloat(value);
+		if ( typeof(value) == 'number' )
+			return value == Infinity ? '.Inf' : ( value == -Infinity ? '-.Inf' : ( isNaN(value) ? '.NAN' : value ) );
+		var yaml = new YamlEscaper();
+		if ( yaml.requiresDoubleQuoting(value) )
+			return yaml.escapeWithDoubleQuotes(value);
+		if ( yaml.requiresSingleQuoting(value) )
+			return yaml.escapeWithSingleQuotes(value);
+		if ( '' == value )
+			return '""';
+		if ( this.getTimestampRegex().test(value) )
+			return "'"+value+"'";
+		if ( this.inArray(value.toLowerCase(), ['null','~','true','false']) )
+			return "'"+value+"'";
+		// default
+			return value;
+	},
+
+	/**
+	 * Dumps a JS object to a YAML string.
+	 *
+	 * @param object value The JS array to dump
+	 *
+	 * @return string The YAML string representing the JS object
+	 */
+	dumpObject: function(value)
+	{
+		var keys = this.getKeys(value);
+		var output = null;
+		var i;
+		var len = keys.length;
+
+		// array
+		if ( value instanceof Array )
+			/*( 1 == len && '0' == keys[0] )
+			||
+			( len > 1 && this.reduceArray(keys, function(v,w){return Math.floor(v+w);}, 0) == len * (len - 1) / 2) )*/
+		{
+			output = [];
+			for ( i = 0; i < len; i++ )
+			{
+				output.push(this.dump(value[keys[i]]));
+			}
+
+			return '['+output.join(', ')+']';
+		}
+
+		// mapping
+		output = [];
+		for ( i = 0; i < len; i++ )
+		{
+			output.push(this.dump(keys[i])+': '+this.dump(value[keys[i]]));
+		}
+
+		return '{ '+output.join(', ')+' }';
+	},
+
+	/**
+	 * Parses a scalar to a YAML string.
+	 *
+	 * @param scalar scalar
+	 * @param string delimiters
+	 * @param object stringDelimiters
+	 * @param integer i
+	 * @param boolean evaluate
+	 *
+	 * @return string A YAML string
+	 *
+	 * @throws YamlParseException When malformed inline YAML string is parsed
+	 */
+	parseScalar: function(scalar, delimiters, stringDelimiters, i, evaluate)
+	{
+		if ( delimiters == undefined ) delimiters = null;
+		if ( stringDelimiters == undefined ) stringDelimiters = ['"', "'"];
+		if ( i == undefined ) i = 0;
+		if ( evaluate == undefined ) evaluate = true;
+		
+		var output = null;
+		var pos = null;
+		var matches = null;
+		
+		if ( this.inArray(scalar[i], stringDelimiters) )
+		{
+			// quoted scalar
+			output = this.parseQuotedScalar(scalar, i);
+			i = this.i;
+			if (null !== delimiters) {
+				var tmp = scalar.substr(i).replace(/^\s+/, '');
+				if (!this.inArray(tmp.charAt(0), delimiters)) {
+					throw new YamlParseException('Unexpected characters ('+scalar.substr(i)+').');
+				}
+			}
+		}
+		else
+		{
+			// "normal" string
+			if ( !delimiters )
+			{
+				output = (scalar+'').substring(i);
+				
+				i += output.length;
+
+				// remove comments
+				pos = output.indexOf(' #');
+				if ( pos != -1 )
+				{
+					output = output.substr(0, pos).replace(/\s+$/g,'');
+				}
+			}
+			else if ( matches = new RegExp('^(.+?)('+delimiters.join('|')+')').exec((scalar+'').substring(i)) )
+			{
+				output = matches[1];
+				i += output.length;
+			}
+			else
+			{
+				throw new YamlParseException('Malformed inline YAML string ('+scalar+').');
+			}
+			output = evaluate ? this.evaluateScalar(output) : output;
+		}
+
+		this.i = i;
+		
+		return output;
+	},
+
+	/**
+	 * Parses a quoted scalar to YAML.
+	 *
+	 * @param string	scalar
+	 * @param integer i
+	 *
+	 * @return string A YAML string
+	 *
+	 * @throws YamlParseException When malformed inline YAML string is parsed
+	 */
+	parseQuotedScalar: function(scalar, i)
+	{
+		var matches = null;
+		//var item = /^(.*?)['"]\s*(?:[,:]|[}\]]\s*,)/.exec((scalar+'').substring(i))[1];
+		
+		if ( !(matches = new RegExp('^'+YamlInline.REGEX_QUOTED_STRING).exec((scalar+'').substring(i))) )
+		{
+			throw new YamlParseException('Malformed inline YAML string ('+(scalar+'').substring(i)+').');
+		}
+
+		var output = matches[0].substr(1, matches[0].length - 2);
+		
+		var unescaper = new YamlUnescaper();
+
+		if ( '"' == (scalar+'').charAt(i) )
+		{
+			output = unescaper.unescapeDoubleQuotedString(output);
+		}
+		else
+		{
+			output = unescaper.unescapeSingleQuotedString(output);
+		}
+
+		i += matches[0].length;
+
+		this.i = i;
+		return output;
+	},
+
+	/**
+	 * Parses a sequence to a YAML string.
+	 *
+	 * @param string sequence
+	 * @param integer i
+	 *
+	 * @return string A YAML string
+	 *
+	 * @throws YamlParseException When malformed inline YAML string is parsed
+	 */
+	parseSequence: function(sequence, i)
+	{
+		if ( i == undefined ) i = 0;
+		
+		var output = [];
+		var len = sequence.length;
+		i += 1;
+
+		// [foo, bar, ...]
+		while ( i < len )
+		{
+			switch ( sequence.charAt(i) )
+			{
+				case '[':
+					// nested sequence
+					output.push(this.parseSequence(sequence, i));
+					i = this.i;
+					break;
+				case '{':
+					// nested mapping
+					output.push(this.parseMapping(sequence, i));
+					i = this.i;
+					break;
+				case ']':
+					this.i = i;
+					return output;
+				case ',':
+				case ' ':
+					break;
+				default:
+					var isQuoted = this.inArray(sequence.charAt(i), ['"', "'"]);
+					var value = this.parseScalar(sequence, [',', ']'], ['"', "'"], i);
+					i = this.i;
+					
+					if ( !isQuoted && (value+'').indexOf(': ') != -1 )
+					{
+						// embedded mapping?
+						try
+						{
+							value = this.parseMapping('{'+value+'}');
+						}
+						catch ( e )
+						{
+							if ( !(e instanceof YamlParseException ) ) throw e;
+							// no, it's not
+						}
+					}
+
+					output.push(value);
+
+					i--;
+			}
+
+			i++;
+		}
+
+		throw new YamlParseException('Malformed inline YAML string "'+sequence+'"');
+	},
+
+	/**
+	 * Parses a mapping to a YAML string.
+	 *
+	 * @param string mapping
+	 * @param integer i
+	 *
+	 * @return string A YAML string
+	 *
+	 * @throws YamlParseException When malformed inline YAML string is parsed
+	 */
+	parseMapping: function(mapping, i)
+	{
+		if ( i == undefined ) i = 0;
+		var output = {};
+		var len = mapping.length;
+		i += 1;
+		var done = false;
+		var doContinue = false;
+
+		// {foo: bar, bar:foo, ...}
+		while ( i < len )
+		{
+			doContinue = false;
+			
+			switch ( mapping.charAt(i) )
+			{
+				case ' ':
+				case ',':
+					i++;
+					doContinue = true;
+					break;
+				case '}':
+					this.i = i;
+					return output;
+			}
+			
+			if ( doContinue ) continue;
+
+			// key
+			var key = this.parseScalar(mapping, [':', ' '], ['"', "'"], i, false);
+			i = this.i;
+
+			// value
+			done = false;
+			while ( i < len )
+			{
+				switch ( mapping.charAt(i) )
+				{
+					case '[':
+						// nested sequence
+						output[key] = this.parseSequence(mapping, i);
+						i = this.i;
+						done = true;
+						break;
+					case '{':
+						// nested mapping
+						output[key] = this.parseMapping(mapping, i);
+						i = this.i;
+						done = true;
+						break;
+					case ':':
+					case ' ':
+						break;
+					default:
+						output[key] = this.parseScalar(mapping, [',', '}'], ['"', "'"], i);
+						i = this.i;
+						done = true;
+						i--;
+				}
+
+				++i;
+
+				if ( done )
+				{
+					doContinue = true;
+					break;
+				}
+			}
+			
+			if ( doContinue ) continue;
+		}
+
+		throw new YamlParseException('Malformed inline YAML string "'+mapping+'"');
+	},
+
+	/**
+	 * Evaluates scalars and replaces magic values.
+	 *
+	 * @param string scalar
+	 *
+	 * @return string A YAML string
+	 */
+	evaluateScalar: function(scalar)
+	{
+		scalar = this.trim(scalar);
+		
+		var raw = null;
+		var cast = null;
+
+		if (	( 'null' == scalar.toLowerCase() ) ||
+				( '' == scalar ) ||
+				( '~' == scalar ) )
+			return null;
+		if ( (scalar+'').indexOf('!str ') == 0 )
+			return (''+scalar).substring(5);
+		if ( (scalar+'').indexOf('! ') == 0 )
+			return parseInt(this.parseScalar((scalar+'').substr(2)));
+		if ( /^\d+$/.test(scalar) )
+		{
+			raw = scalar;
+			cast = parseInt(scalar);
+			return '0' == scalar.charAt(0) ? this.octdec(scalar) : (( ''+raw == ''+cast ) ? cast : raw);
+		}
+		if ( 'true' == (scalar+'').toLowerCase() )
+			return true;
+		if ( 'false' == (scalar+'').toLowerCase() )
+			return false;
+		if ( this.isNumeric(scalar) )
+			return '0x' == (scalar+'').substr(0, 2) ? this.hexdec(scalar) : parseFloat(scalar);
+		if ( scalar.toLowerCase() == '.inf' )
+			return Infinity;
+		if ( scalar.toLowerCase() == '.nan' )
+			return NaN;
+		if ( scalar.toLowerCase() == '-.inf' )
+			return -Infinity;
+		if ( /^(-|\+)?[0-9,]+(\.[0-9]+)?$/.test(scalar) )
+			return parseFloat(scalar.split(',').join(''));
+		if ( this.getTimestampRegex().test(scalar) )
+			return new Date(this.strtotime(scalar));
+		//else
+			return ''+scalar;
+	},
+
+	/**
+	 * Gets a regex that matches an unix timestamp
+	 *
+	 * @return string The regular expression
+	 */
+	getTimestampRegex: function()
+	{
+		return new RegExp('^'+
+		'([0-9][0-9][0-9][0-9])'+
+		'-([0-9][0-9]?)'+
+		'-([0-9][0-9]?)'+
+		'(?:(?:[Tt]|[ \t]+)'+
+		'([0-9][0-9]?)'+
+		':([0-9][0-9])'+
+		':([0-9][0-9])'+
+		'(?:\.([0-9]*))?'+
+		'(?:[ \t]*(Z|([-+])([0-9][0-9]?)'+
+		'(?::([0-9][0-9]))?))?)?'+
+		'$','gi');
+	},
+	
+	trim: function(str /* String */)
+	{
+		return (str+'').replace(/^\s+/,'').replace(/\s+$/,'');
+	},
+	
+	isNumeric: function(input)
+	{
+		return (input - 0) == input && input.length > 0 && input.replace(/\s+/g,'') != '';
+	},
+	
+	inArray: function(key, tab)
+	{
+		var i;
+		var len = tab.length;
+		for ( i = 0; i < len; i++ )
+		{
+			if ( key == tab[i] ) return true;
+		}
+		return false;
+	},
+	
+	getKeys: function(tab)
+	{
+		var ret = [];
+		
+		for ( var name in tab )
+		{
+			if ( tab.hasOwnProperty(name) )
+			{
+				ret.push(name);
+			}
+		}
+		
+		return ret;
+	},
+	
+	/*reduceArray: function(tab, fun)
+	{
+		var len = tab.length;
+		if (typeof fun != "function")
+			throw new YamlParseException("fun is not a function");
+		
+		// no value to return if no initial value and an empty array
+		if (len == 0 && arguments.length == 1)
+			throw new YamlParseException("empty array");
+		
+		var i = 0;
+		if (arguments.length >= 2)
+		{
+			var rv = arguments[1];
+		}
+		else
+		{
+			do
+			{
+				if (i in tab)
+				{
+					rv = tab[i++];
+					break;
+				}
+		
+				// if array contains no values, no initial value to return
+				if (++i >= len)
+					throw new YamlParseException("no initial value to return");
+			}
+			while (true);
+		}
+
+		for (; i < len; i++)
+		{
+			if (i in tab)
+				rv = fun.call(null, rv, tab[i], i, tab);
+		}
+
+		return rv;
+	},*/
+	
+	octdec: function(input)
+	{
+	    return parseInt((input+'').replace(/[^0-7]/gi, ''), 8);
+	},
+	
+	hexdec: function(input)
+	{
+		input = this.trim(input);
+		if ( (input+'').substr(0, 2) == '0x' ) input = (input+'').substring(2);
+	    return parseInt((input+'').replace(/[^a-f0-9]/gi, ''), 16);
+	},
+	
+	/**
+	 * @see http://phpjs.org/functions/strtotime
+	 * @note we need timestamp with msecs so /1000 removed
+	 * @note original contained binary | 0 (wtf?!) everywhere, which messes everything up 
+	 */
+	strtotime: function (h,b){var f,c,g,k,d="";h=(h+"").replace(/\s{2,}|^\s|\s$/g," ").replace(/[\t\r\n]/g,"");if(h==="now"){return b===null||isNaN(b)?new Date().getTime()||0:b||0}else{if(!isNaN(d=Date.parse(h))){return d||0}else{if(b){b=new Date(b)}else{b=new Date()}}}h=h.toLowerCase();var e={day:{sun:0,mon:1,tue:2,wed:3,thu:4,fri:5,sat:6},mon:["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"]};var a=function(i){var o=(i[2]&&i[2]==="ago");var n=(n=i[0]==="last"?-1:1)*(o?-1:1);switch(i[0]){case"last":case"next":switch(i[1].substring(0,3)){case"yea":b.setFullYear(b.getFullYear()+n);break;case"wee":b.setDate(b.getDate()+(n*7));break;case"day":b.setDate(b.getDate()+n);break;case"hou":b.setHours(b.getHours()+n);break;case"min":b.setMinutes(b.getMinutes()+n);break;case"sec":b.setSeconds(b.getSeconds()+n);break;case"mon":if(i[1]==="month"){b.setMonth(b.getMonth()+n);break}default:var l=e.day[i[1].substring(0,3)];if(typeof l!=="undefined"){var p=l-b.getDay();if(p===0){p=7*n}else{if(p>0){if(i[0]==="last"){p-=7}}else{if(i[0]==="next"){p+=7}}}b.setDate(b.getDate()+p);b.setHours(0,0,0,0)}}break;default:if(/\d+/.test(i[0])){n*=parseInt(i[0],10);switch(i[1].substring(0,3)){case"yea":b.setFullYear(b.getFullYear()+n);break;case"mon":b.setMonth(b.getMonth()+n);break;case"wee":b.setDate(b.getDate()+(n*7));break;case"day":b.setDate(b.getDate()+n);break;case"hou":b.setHours(b.getHours()+n);break;case"min":b.setMinutes(b.getMinutes()+n);break;case"sec":b.setSeconds(b.getSeconds()+n);break}}else{return false}break}return true};g=h.match(/^(\d{2,4}-\d{2}-\d{2})(?:\s(\d{1,2}:\d{2}(:\d{2})?)?(?:\.(\d+))?)?$/);if(g!==null){if(!g[2]){g[2]="00:00:00"}else{if(!g[3]){g[2]+=":00"}}k=g[1].split(/-/g);k[1]=e.mon[k[1]-1]||k[1];k[0]=+k[0];k[0]=(k[0]>=0&&k[0]<=69)?"20"+(k[0]<10?"0"+k[0]:k[0]+""):(k[0]>=70&&k[0]<=99)?"19"+k[0]:k[0]+"";return parseInt(this.strtotime(k[2]+" "+k[1]+" "+k[0]+" "+g[2])+(g[4]?g[4]:""),10)}var j="([+-]?\\d+\\s(years?|months?|weeks?|days?|hours?|min|minutes?|sec|seconds?|sun\\.?|sunday|mon\\.?|monday|tue\\.?|tuesday|wed\\.?|wednesday|thu\\.?|thursday|fri\\.?|friday|sat\\.?|saturday)|(last|next)\\s(years?|months?|weeks?|days?|hours?|min|minutes?|sec|seconds?|sun\\.?|sunday|mon\\.?|monday|tue\\.?|tuesday|wed\\.?|wednesday|thu\\.?|thursday|fri\\.?|friday|sat\\.?|saturday))(\\sago)?";g=h.match(new RegExp(j,"gi"));if(g===null){return false}for(f=0,c=g.length;f<c;f++){if(!a(g[f].split(" "))){return false}}return b.getTime()||0}
+	 
+};
+
+/*
+ * @note uses only non-capturing sub-patterns (unlike PHP original)
+ */
+YamlInline.REGEX_QUOTED_STRING = '(?:"(?:[^"\\\\]*(?:\\\\.[^"\\\\]*)*)"|\'(?:[^\']*(?:\'\'[^\']*)*)\')';
+
+
+/**
+ * YamlParser parses YAML strings to convert them to JS objects
+ * (port of Yaml Symfony Component)
+ */
+var YamlParser = function(offset /* Integer */)
+{
+		this.offset = (offset !== undefined) ? offset : 0;
+};
+YamlParser.prototype =
+{
+	offset: 0,
+	lines: [],
+	currentLineNb: -1,
+	currentLine: '',
+	refs: {},
+	
+	/**
+	 * Parses a YAML string to a JS value.
+	 *
+	 * @param String value A YAML string
+	 *
+	 * @return mixed A JS value
+	 */
+	parse: function(value /* String */)
+	{
+		this.currentLineNb = -1;
+		this.currentLine = '';
+		this.lines = this.cleanup(value).split("\n");
+		
+		var data = null;
+      var context = null;
+      		
+		while ( this.moveToNextLine() )
+		{
+			if ( this.isCurrentLineEmpty() )
+			{
+				continue;
+			}
+			
+			// tab?
+			if ( this.currentLine.charAt(0) == '\t' )
+			{
+				throw new YamlParseException('A YAML file cannot contain tabs as indentation.', this.getRealCurrentLineNb() + 1, this.currentLine);
+			}
+			
+			var isRef = false;
+			var isInPlace = false;
+			var isProcessed = false;
+			var values = null;
+			var matches = null;
+			var c = null;
+			var parser = null;
+			var block = null;
+			var key = null;
+			var parsed = null;
+			var len = null;
+			var reverse = null;
+			
+			if ( values = /^\-((\s+)(.+?))?\s*$/.exec(this.currentLine) )
+			{
+
+				if (context && 'mapping' == context) {
+					throw new YamlParseException('You cannot define a sequence item when in a mapping', this.getRealCurrentLineNb() + 1, this.currentLine);
+				}
+				context = 'sequence';
+
+				if ( !this.isDefined(data) ) data = [];
+				//if ( !(data instanceof Array) ) throw new YamlParseException("Non array entry", this.getRealCurrentLineNb() + 1, this.currentLine);
+				
+				values = {leadspaces: values[2], value: values[3]};
+				
+				if ( this.isDefined(values.value) && ( matches = /^&([^ ]+) *(.*)/.exec(values.value) ) )
+				{
+					matches = {ref: matches[1], value: matches[2]};
+					isRef = matches.ref;
+					values.value = matches.value;
+				}
+				
+				// array
+				if ( !this.isDefined(values.value) || '' == this.trim(values.value) || values.value.replace(/^ +/,'').charAt(0) == '#' )
+				{
+					c = this.getRealCurrentLineNb() + 1;
+					parser = new YamlParser(c);
+					parser.refs = this.refs;
+					data.push(parser.parse(this.getNextEmbedBlock()));
+					this.refs = parser.refs;
+				}
+				else
+				{
+					if ( this.isDefined(values.leadspaces) && 
+						' ' == values.leadspaces && 
+						( matches = new RegExp('^('+YamlInline.REGEX_QUOTED_STRING+'|[^ \'"\{\[].*?) *\:(\\s+(.+?))?\\s*$').exec(values.value) ) 
+					) {
+						matches = {key: matches[1], value: matches[3]};
+						// this is a compact notation element, add to next block and parse
+						c = this.getRealCurrentLineNb();
+						parser = new YamlParser(c);
+						parser.refs = this.refs;
+						block = values.value;
+						
+						if ( !this.isNextLineIndented() )
+						{
+							block += "\n"+this.getNextEmbedBlock(this.getCurrentLineIndentation() + 2);
+						}
+
+						data.push(parser.parse(block));
+						this.refs = parser.refs;
+					}
+					else
+					{
+						data.push(this.parseValue(values.value));
+					}
+				}
+			}
+			else if ( values = new RegExp('^('+YamlInline.REGEX_QUOTED_STRING+'|[^ \'"\[\{].*?) *\:(\\s+(.+?))?\\s*$').exec(this.currentLine) )
+			{
+				if ( !this.isDefined(data) ) data = {};
+				if (context && 'sequence' == context) {
+					throw new YamlParseException('You cannot define a mapping item when in a sequence', this.getRealCurrentLineNb() + 1, this.currentLine);
+				}
+				context = 'mapping';				
+				//if ( data instanceof Array ) throw new YamlParseException("Non mapped entry", this.getRealCurrentLineNb() + 1, this.currentLine);
+				
+				values = {key: values[1], value: values[3]};
+				
+				try {
+					key = new YamlInline().parseScalar(values.key);
+				} catch (e) {
+					if ( e instanceof YamlParseException ) {
+						e.setParsedLine(this.getRealCurrentLineNb() + 1);
+						e.setSnippet(this.currentLine);
+					}
+					throw e;
+				}				
+				
+				
+				if ( '<<' == key )
+				{
+					if ( this.isDefined(values.value) && '*' == (values.value+'').charAt(0) )
+					{
+						isInPlace = values.value.substr(1);
+						if ( this.refs[isInPlace] == undefined )
+						{
+							throw new YamlParseException('Reference "'+value+'" does not exist', this.getRealCurrentLineNb() + 1, this.currentLine);
+						}
+					}
+					else
+					{
+						if ( this.isDefined(values.value) && values.value != '' )
+						{
+							value = values.value;
+						}
+						else
+						{
+							value = this.getNextEmbedBlock();
+						}
+						
+						c = this.getRealCurrentLineNb() + 1;
+						parser = new YamlParser(c);
+						parser.refs = this.refs;
+						parsed = parser.parse(value);
+						this.refs = parser.refs;
+				
+						var merged = [];
+						if ( !this.isObject(parsed) )
+						{
+							throw new YamlParseException("YAML merge keys used with a scalar value instead of an array", this.getRealCurrentLineNb() + 1, this.currentLine);
+						}
+						else if ( this.isDefined(parsed[0]) )
+						{
+							// Numeric array, merge individual elements
+							reverse = this.reverseArray(parsed);
+							len = reverse.length;
+							for ( var i = 0; i < len; i++ )
+							{
+								var parsedItem = reverse[i];
+								if ( !this.isObject(reverse[i]) )
+								{
+									throw new YamlParseException("Merge items must be arrays", this.getRealCurrentLineNb() + 1, this.currentLine);
+								}
+								merged = this.mergeObject(reverse[i], merged);
+							}
+						}
+						else
+						{
+							// Associative array, merge
+							merged = this.mergeObject(merged, parsed);
+						}
+				
+						isProcessed = merged;
+					}
+				}
+				else if ( this.isDefined(values.value) && (matches = /^&([^ ]+) *(.*)/.exec(values.value) ) )
+				{
+					matches = {ref: matches[1], value: matches[2]};
+					isRef = matches.ref;
+					values.value = matches.value;
+				}
+				
+				if ( isProcessed )
+				{
+					// Merge keys
+					data = isProcessed;
+				}
+				// hash
+				else if ( !this.isDefined(values.value) || '' == this.trim(values.value) || this.trim(values.value).charAt(0) == '#' )
+				{
+					// if next line is less indented or equal, then it means that the current value is null
+					if ( this.isNextLineIndented() && !this.isNextLineUnIndentedCollection() )
+					{
+						data[key] = null;
+					}
+					else
+					{
+						c = this.getRealCurrentLineNb() + 1;
+						parser = new YamlParser(c);
+						parser.refs = this.refs;
+						data[key] = parser.parse(this.getNextEmbedBlock());
+						this.refs = parser.refs;
+					}
+				}
+				else
+				{
+					if ( isInPlace )
+					{
+						data = this.refs[isInPlace];
+					}
+					else
+					{
+						data[key] = this.parseValue(values.value);
+					}
+				}
+			}
+			else
+			{
+				// 1-liner followed by newline
+				if ( 2 == this.lines.length && this.isEmpty(this.lines[1]) )
+				{
+					try {
+						value = new YamlInline().parse(this.lines[0]);
+					} catch (e) {
+						if ( e instanceof YamlParseException ) {
+							e.setParsedLine(this.getRealCurrentLineNb() + 1);
+							e.setSnippet(this.currentLine);
+						}
+						throw e;
+					}
+					
+					if ( this.isObject(value) )
+					{
+						var first = value[0];
+						if ( typeof(value) == 'string' && '*' == first.charAt(0) )
+						{
+							data = [];
+							len = value.length;
+							for ( var i = 0; i < len; i++ )
+							{
+								data.push(this.refs[value[i].substr(1)]);
+							}
+							value = data;
+						}
+					}
+				
+					return value;
+				}
+				
+				throw new YamlParseException('Unable to parse.', this.getRealCurrentLineNb() + 1, this.currentLine);
+			}
+		
+			if ( isRef )
+			{
+				if ( data instanceof Array )
+					this.refs[isRef] = data[data.length-1];
+				else
+				{
+					var lastKey = null;
+					for ( var k in data )
+					{
+						if ( data.hasOwnProperty(k) ) lastKey = k;
+					}
+					this.refs[isRef] = data[k];
+				}
+			}
+		}
+		
+		return this.isEmpty(data) ? null : data;
+	},
+
+	/**
+	 * Returns the current line number (takes the offset into account).
+	 *
+	 * @return integer The current line number
+	 */
+	getRealCurrentLineNb: function()
+	{
+		return this.currentLineNb + this.offset;
+	},
+
+	/**
+	 * Returns the current line indentation.
+	 *
+	 * @return integer The current line indentation
+	 */
+	getCurrentLineIndentation: function()
+	{
+		return this.currentLine.length - this.currentLine.replace(/^ +/g, '').length;
+	},
+
+	/**
+	 * Returns the next embed block of YAML.
+	 *
+	 * @param integer indentation The indent level at which the block is to be read, or null for default
+	 *
+	 * @return string A YAML string
+	 *
+	 * @throws YamlParseException When indentation problem are detected
+	 */
+	getNextEmbedBlock: function(indentation)
+	{
+		this.moveToNextLine();
+		var newIndent = null;
+		var indent = null;
+
+		if ( !this.isDefined(indentation) )
+		{
+			newIndent = this.getCurrentLineIndentation();
+			
+			var unindentedEmbedBlock = this.isStringUnIndentedCollectionItem(this.currentLine);
+
+			if ( !this.isCurrentLineEmpty() && 0 == newIndent && !unindentedEmbedBlock )
+			{
+				throw new YamlParseException('Indentation problem A', this.getRealCurrentLineNb() + 1, this.currentLine);
+			}
+		}
+		else
+		{
+			newIndent = indentation;
+		}
+
+		var data = [this.currentLine.substr(newIndent)];
+
+		var isUnindentedCollection = this.isStringUnIndentedCollectionItem(this.currentLine);
+
+		var continuationIndent = -1;
+		if (isUnindentedCollection === true) {
+			continuationIndent = 1 + /^\-((\s+)(.+?))?\s*$/.exec(this.currentLine)[2].length;
+		}
+
+		while ( this.moveToNextLine() )
+		{
+
+			if (isUnindentedCollection && !this.isStringUnIndentedCollectionItem(this.currentLine) && this.getCurrentLineIndentation() != continuationIndent) {
+				this.moveToPreviousLine();
+				break;
+			}
+
+			if ( this.isCurrentLineEmpty() )
+			{
+				if ( this.isCurrentLineBlank() )
+				{
+					data.push(this.currentLine.substr(newIndent));
+				}
+
+				continue;
+			}
+
+			indent = this.getCurrentLineIndentation();
+			var matches;
+			if ( matches = /^( *)$/.exec(this.currentLine) )
+			{
+				// empty line
+				data.push(matches[1]);
+			}
+			else if ( indent >= newIndent )
+			{
+				data.push(this.currentLine.substr(newIndent));
+			}
+			else if ( 0 == indent )
+			{
+				this.moveToPreviousLine();
+
+				break;
+			}
+			else
+			{
+				throw new YamlParseException('Indentation problem B', this.getRealCurrentLineNb() + 1, this.currentLine);
+			}
+		}
+
+		return data.join("\n");
+	},
+
+	/**
+	 * Moves the parser to the next line.
+	 *
+	 * @return Boolean
+	 */
+	moveToNextLine: function()
+	{
+		if ( this.currentLineNb >= this.lines.length - 1 )
+		{
+			return false;
+		}
+
+		this.currentLineNb++;
+		this.currentLine = this.lines[this.currentLineNb];
+
+		return true;
+	},
+
+	/**
+	 * Moves the parser to the previous line.
+	 */
+	moveToPreviousLine: function()
+	{
+		this.currentLineNb--;
+		this.currentLine = this.lines[this.currentLineNb];
+	},
+
+	/**
+	 * Parses a YAML value.
+	 *
+	 * @param string value A YAML value
+	 *
+	 * @return mixed A JS value
+	 *
+	 * @throws YamlParseException When reference does not exist
+	 */
+	parseValue: function(value)
+	{
+		if ( '*' == (value+'').charAt(0) )
+		{
+			if ( this.trim(value).charAt(0) == '#' )
+			{
+				value = (value+'').substr(1, value.indexOf('#') - 2);
+			}
+			else
+			{
+				value = (value+'').substr(1);
+			}
+
+			if ( this.refs[value] == undefined )
+			{
+				throw new YamlParseException('Reference "'+value+'" does not exist', this.getRealCurrentLineNb() + 1, this.currentLine);
+			}
+			return this.refs[value];
+		}
+
+		var matches = null;
+		if ( matches = /^(\||>)(\+|\-|\d+|\+\d+|\-\d+|\d+\+|\d+\-)?( +#.*)?$/.exec(value) )
+		{
+			matches = {separator: matches[1], modifiers: matches[2], comments: matches[3]};
+			var modifiers = this.isDefined(matches.modifiers) ? matches.modifiers : '';
+
+			return this.parseFoldedScalar(matches.separator, modifiers.replace(/\d+/g, ''), Math.abs(parseInt(modifiers)));
+		}
+		try {
+			return new YamlInline().parse(value);
+		} catch (e) {
+			if ( e instanceof YamlParseException ) {
+				e.setParsedLine(this.getRealCurrentLineNb() + 1);
+				e.setSnippet(this.currentLine);
+			}
+			throw e;
+		}
+	},
+
+	/**
+	 * Parses a folded scalar.
+	 *
+	 * @param	string	separator	 The separator that was used to begin this folded scalar (| or >)
+	 * @param	string	indicator	 The indicator that was used to begin this folded scalar (+ or -)
+	 * @param	integer indentation  The indentation that was used to begin this folded scalar
+	 *
+	 * @return string	The text value
+	 */
+	parseFoldedScalar: function(separator, indicator, indentation)
+	{
+		if ( indicator == undefined ) indicator = '';
+		if ( indentation == undefined ) indentation = 0;
+		
+		separator = '|' == separator ? "\n" : ' ';
+		var text = '';
+		var diff = null;
+
+		var notEOF = this.moveToNextLine();
+
+		while ( notEOF && this.isCurrentLineBlank() )
+		{
+			text += "\n";
+
+			notEOF = this.moveToNextLine();
+		}
+
+		if ( !notEOF )
+		{
+			return '';
+		}
+
+		var matches = null;
+		if ( !(matches = new RegExp('^('+(indentation ? this.strRepeat(' ', indentation) : ' +')+')(.*)$').exec(this.currentLine)) )
+		{
+			this.moveToPreviousLine();
+
+			return '';
+		}
+		
+		matches = {indent: matches[1], text: matches[2]};
+		
+		var textIndent = matches.indent;
+		var previousIndent = 0;
+
+		text += matches.text + separator;
+		while ( this.currentLineNb + 1 < this.lines.length )
+		{
+			this.moveToNextLine();
+			
+			if ( matches = new RegExp('^( {'+textIndent.length+',})(.+)$').exec(this.currentLine) )
+			{
+				matches = {indent: matches[1], text: matches[2]};
+				
+				if ( ' ' == separator && previousIndent != matches.indent )
+				{
+					text = text.substr(0, text.length - 1)+"\n";
+				}
+				
+				previousIndent = matches.indent;
+
+				diff = matches.indent.length - textIndent.length;
+				text += this.strRepeat(' ', diff) + matches.text + (diff != 0 ? "\n" : separator);
+			}
+			else if ( matches = /^( *)$/.exec(this.currentLine) )
+			{
+				text += matches[1].replace(new RegExp('^ {1,'+textIndent.length+'}','g'), '')+"\n";
+			}
+			else
+			{
+				this.moveToPreviousLine();
+
+				break;
+			}
+		}
+
+		if ( ' ' == separator )
+		{
+			// replace last separator by a newline
+			text = text.replace(/ (\n*)$/g, "\n$1");
+		}
+
+		switch ( indicator )
+		{
+			case '':
+				text = text.replace(/\n+$/g, "\n");
+				break;
+			case '+':
+				break;
+			case '-':
+				text = text.replace(/\n+$/g, '');
+				break;
+		}
+
+		return text;
+	},
+
+	/**
+	 * Returns true if the next line is indented.
+	 *
+	 * @return Boolean Returns true if the next line is indented, false otherwise
+	 */
+	isNextLineIndented: function()
+	{
+		var currentIndentation = this.getCurrentLineIndentation();
+		var notEOF = this.moveToNextLine();
+
+		while ( notEOF && this.isCurrentLineEmpty() )
+		{
+			notEOF = this.moveToNextLine();
+		}
+
+		if ( false == notEOF )
+		{
+			return false;
+		}
+
+		var ret = false;
+		if ( this.getCurrentLineIndentation() <= currentIndentation )
+		{
+			ret = true;
+		}
+
+		this.moveToPreviousLine();
+
+		return ret;
+	},
+
+	/**
+	 * Returns true if the current line is blank or if it is a comment line.
+	 *
+	 * @return Boolean Returns true if the current line is empty or if it is a comment line, false otherwise
+	 */
+	isCurrentLineEmpty: function()
+	{
+		return this.isCurrentLineBlank() || this.isCurrentLineComment();
+	},
+
+	/**
+	 * Returns true if the current line is blank.
+	 *
+	 * @return Boolean Returns true if the current line is blank, false otherwise
+	 */
+	isCurrentLineBlank: function()
+	{
+		return '' == this.trim(this.currentLine);
+	},
+
+	/**
+	 * Returns true if the current line is a comment line.
+	 *
+	 * @return Boolean Returns true if the current line is a comment line, false otherwise
+	 */
+	isCurrentLineComment: function()
+	{
+		//checking explicitly the first char of the trim is faster than loops or strpos
+		var ltrimmedLine = this.currentLine.replace(/^ +/g, '');
+		return ltrimmedLine.charAt(0) == '#';
+	},
+
+	/**
+	 * Cleanups a YAML string to be parsed.
+	 *
+	 * @param string value The input YAML string
+	 *
+	 * @return string A cleaned up YAML string
+	 */
+	cleanup: function(value)
+	{
+		value = value.split("\r\n").join("\n").split("\r").join("\n");
+
+		if ( !/\n$/.test(value) )
+		{
+			value += "\n";
+		}
+
+		// strip YAML header
+		var count = 0;
+		var regex = /^\%YAML[: ][\d\.]+.*\n/;
+		while ( regex.test(value) )
+		{
+			value = value.replace(regex, '');
+			count++;
+		}
+		this.offset += count;
+
+		// remove leading comments
+		regex = /^(#.*?\n)+/;
+		if ( regex.test(value) )
+		{
+			var trimmedValue = value.replace(regex, '');
+			
+			// items have been removed, update the offset
+			this.offset += this.subStrCount(value, "\n") - this.subStrCount(trimmedValue, "\n");
+			value = trimmedValue;
+		}
+
+		// remove start of the document marker (---)
+		regex = /^\-\-\-.*?\n/;
+		if ( regex.test(value) )
+		{
+			trimmedValue = value.replace(regex, '');
+			
+			// items have been removed, update the offset
+			this.offset += this.subStrCount(value, "\n") - this.subStrCount(trimmedValue, "\n");
+			value = trimmedValue;
+
+			// remove end of the document marker (...)
+			value = value.replace(/\.\.\.\s*$/g, '');
+		}
+
+		return value;
+	},
+
+	/**
+	 * Returns true if the next line starts unindented collection
+	 *
+	 * @return Boolean Returns true if the next line starts unindented collection, false otherwise
+	 */
+	isNextLineUnIndentedCollection: function()
+	{
+		var currentIndentation = this.getCurrentLineIndentation();
+		var notEOF = this.moveToNextLine();
+
+		while (notEOF && this.isCurrentLineEmpty()) {
+			notEOF = this.moveToNextLine();
+		}
+
+		if (false === notEOF) {
+			return false;
+		}
+
+		var ret = false;
+		if (
+			this.getCurrentLineIndentation() == currentIndentation
+			&&
+			this.isStringUnIndentedCollectionItem(this.currentLine)
+		) {
+			ret = true;
+		}
+
+		this.moveToPreviousLine();
+
+		return ret;
+	},
+
+	/**
+	 * Returns true if the string is unindented collection item
+	 *
+	 * @return Boolean Returns true if the string is unindented collection item, false otherwise
+	 */
+	isStringUnIndentedCollectionItem: function(string)
+	{
+		return (0 === this.currentLine.indexOf('- '));
+	},
+	
+	isObject: function(input)
+	{
+		return typeof(input) == 'object' && this.isDefined(input);
+	},
+	
+	isEmpty: function(input)
+	{
+		return input == undefined || input == null || input == '' || input == 0 || input == "0" || input == false;
+	},
+	
+	isDefined: function(input)
+	{
+		return input != undefined && input != null;
+	},
+	
+	reverseArray: function(input /* Array */)
+	{
+		var result = [];
+		var len = input.length;
+		for ( var i = len-1; i >= 0; i-- )
+		{
+			result.push(input[i]);
+		}
+		
+		return result;
+	},
+	
+	merge: function(a /* Object */, b /* Object */)
+	{
+		var c = {};
+		var i;
+		
+		for ( i in a )
+		{
+			if ( a.hasOwnProperty(i) )
+				if ( /^\d+$/.test(i) ) c.push(a);
+				else c[i] = a[i];
+		}
+		for ( i in b )
+		{
+			if ( b.hasOwnProperty(i) )
+				if ( /^\d+$/.test(i) ) c.push(b);
+				else c[i] = b[i];
+		}
+		
+		return c;
+	},
+	
+	strRepeat: function(str /* String */, count /* Integer */)
+	{
+		var i;
+		var result = '';
+		for ( i = 0; i < count; i++ ) result += str;
+		return result;
+	},
+	
+	subStrCount: function(string, subString, start, length)
+	{
+		var c = 0;
+		
+		string = '' + string;
+		subString = '' + subString;
+		
+		if ( start != undefined ) string = string.substr(start);
+		if ( length != undefined ) string = string.substr(0, length); 
+		
+		var len = string.length;
+		var sublen = subString.length;
+		for ( var i = 0; i < len; i++ )
+		{
+			if ( subString == string.substr(i, sublen) )
+				c++;
+				i += sublen - 1;
+		}
+		
+		return c;
+	},
+	
+	trim: function(str /* String */)
+	{
+		return (str+'').replace(/^ +/,'').replace(/ +$/,'');
+	}
+};
+/**
+ * YamlEscaper encapsulates escaping rules for single and double-quoted
+ * YAML strings.
+ *
+ * @author Matthew Lewinski <matthew@lewinski.org>
+ */
+YamlEscaper = function(){};
+YamlEscaper.prototype =
+{
+	/**
+	 * Determines if a JS value would require double quoting in YAML.
+	 *
+	 * @param string value A JS value
+	 *
+	 * @return Boolean True if the value would require double quotes.
+	 */
+	requiresDoubleQuoting: function(value)
+	{
+		return new RegExp(YamlEscaper.REGEX_CHARACTER_TO_ESCAPE).test(value);
+	},
+
+	/**
+	 * Escapes and surrounds a JS value with double quotes.
+	 *
+	 * @param string value A JS value
+	 *
+	 * @return string The quoted, escaped string
+	 */
+	escapeWithDoubleQuotes: function(value)
+	{
+		value = value + '';
+		var len = YamlEscaper.escapees.length;
+		var maxlen = YamlEscaper.escaped.length;
+		var esc = YamlEscaper.escaped;
+		for (var i = 0; i < len; ++i)
+			if ( i >= maxlen ) esc.push('');
+
+		var ret = '';		
+		ret = value.replace(new RegExp(YamlEscaper.escapees.join('|'),'g'), function(str){
+			for(var i = 0; i < len; ++i){
+				if( str == YamlEscaper.escapees[i] )
+					return esc[i];
+			}
+		});
+		return '"' + ret + '"'; 
+	},
+
+	/**
+	 * Determines if a JS value would require single quoting in YAML.
+	 *
+	 * @param string value A JS value
+	 *
+	 * @return Boolean True if the value would require single quotes.
+	 */
+	requiresSingleQuoting: function(value)
+	{
+		return /[\s'":{}[\],&*#?]|^[-?|<>=!%@`]/.test(value);
+	},
+
+	/**
+	 * Escapes and surrounds a JS value with single quotes.
+	 *
+	 * @param string value A JS value
+	 *
+	 * @return string The quoted, escaped string
+	 */
+	escapeWithSingleQuotes : function(value)
+	{
+		return "'" + value.replace(/'/g, "''") + "'";
+	}
+};
+
+// Characters that would cause a dumped string to require double quoting.
+YamlEscaper.REGEX_CHARACTER_TO_ESCAPE = "[\\x00-\\x1f]|\xc2\x85|\xc2\xa0|\xe2\x80\xa8|\xe2\x80\xa9";
+
+// Mapping arrays for escaping a double quoted string. The backslash is
+// first to ensure proper escaping. 
+YamlEscaper.escapees = ['\\\\', '\\"', '"',
+									 "\x00",  "\x01",  "\x02",  "\x03",  "\x04",  "\x05",  "\x06",  "\x07",
+									 "\x08",  "\x09",  "\x0a",  "\x0b",  "\x0c",  "\x0d",  "\x0e",  "\x0f",
+									 "\x10",  "\x11",  "\x12",  "\x13",  "\x14",  "\x15",  "\x16",  "\x17",
+									 "\x18",  "\x19",  "\x1a",  "\x1b",  "\x1c",  "\x1d",  "\x1e",  "\x1f",
+									 "\xc2\x85", "\xc2\xa0", "\xe2\x80\xa8", "\xe2\x80\xa9"];
+YamlEscaper.escaped = ['\\"', '\\\\', '\\"',
+									 "\\0",   "\\x01", "\\x02", "\\x03", "\\x04", "\\x05", "\\x06", "\\a",
+									 "\\b",   "\\t",   "\\n",   "\\v",   "\\f",   "\\r",   "\\x0e", "\\x0f",
+									 "\\x10", "\\x11", "\\x12", "\\x13", "\\x14", "\\x15", "\\x16", "\\x17",
+									 "\\x18", "\\x19", "\\x1a", "\\e",   "\\x1c", "\\x1d", "\\x1e", "\\x1f",
+									 "\\N", "\\_", "\\L", "\\P"];
+/**
+ * YamlUnescaper encapsulates unescaping rules for single and double-quoted
+ * YAML strings.
+ *
+ * @author Matthew Lewinski <matthew@lewinski.org>
+ */
+var YamlUnescaper = function(){};
+YamlUnescaper.prototype =
+{
+	/**
+	 * Unescapes a single quoted string.
+	 *
+	 * @param string value A single quoted string.
+	 *
+	 * @return string The unescaped string.
+	 */
+	unescapeSingleQuotedString: function(value)
+	{
+		return value.replace(/''/g, "'");
+	},
+
+	/**
+	 * Unescapes a double quoted string.
+	 *
+	 * @param string value A double quoted string.
+	 *
+	 * @return string The unescaped string.
+	 */
+	unescapeDoubleQuotedString: function(value)
+	{
+		var callback = function(m) {
+			return new YamlUnescaper().unescapeCharacter(m);
+		};
+
+		// evaluate the string
+		return value.replace(new RegExp(YamlUnescaper.REGEX_ESCAPED_CHARACTER, 'g'), callback);
+	},
+
+	/**
+	 * Unescapes a character that was found in a double-quoted string
+	 *
+	 * @param string value An escaped character
+	 *
+	 * @return string The unescaped character
+	 */
+	unescapeCharacter: function(value)
+	{
+		switch (value.charAt(1)) {
+			case '0':
+				return String.fromCharCode(0);
+			case 'a':
+				return String.fromCharCode(7);
+			case 'b':
+				return String.fromCharCode(8);
+			case 't':
+				return "\t";
+			case "\t":
+				return "\t";
+			case 'n':
+				return "\n";
+			case 'v':
+				return String.fromCharCode(11);
+			case 'f':
+				return String.fromCharCode(12);
+			case 'r':
+				return String.fromCharCode(13);
+			case 'e':
+				return "\x1b";
+			case ' ':
+				return ' ';
+			case '"':
+				return '"';
+			case '/':
+				return '/';
+			case '\\':
+				return '\\';
+			case 'N':
+				// U+0085 NEXT LINE
+				return "\x00\x85";
+			case '_':
+				// U+00A0 NO-BREAK SPACE
+				return "\x00\xA0";
+			case 'L':
+				// U+2028 LINE SEPARATOR
+				return "\x20\x28";
+			case 'P':
+				// U+2029 PARAGRAPH SEPARATOR
+				return "\x20\x29";
+			case 'x':
+				return this.pack('n', new YamlInline().hexdec(value.substr(2, 2)));
+			case 'u':
+				return this.pack('n', new YamlInline().hexdec(value.substr(2, 4)));
+			case 'U':
+				return this.pack('N', new YamlInline().hexdec(value.substr(2, 8)));
+		}
+	},
+	
+	/**
+	 * @see http://phpjs.org/functions/pack
+	 * @warning only modes used above copied
+	 */
+	 pack: function(B){var g=0,o=1,m="",l="",z=0,p=[],E,s,C,I,h,c;var d,b,x,H,u,e,A,q,D,t,w,a,G,F,y,v,f;while(g<B.length){E=B.charAt(g);s="";g++;while((g<B.length)&&(B.charAt(g).match(/[\d\*]/)!==null)){s+=B.charAt(g);g++}if(s===""){s="1"}switch(E){case"n":if(s==="*"){s=arguments.length-o}if(s>(arguments.length-o)){throw new Error("Warning:  pack() Type "+E+": too few arguments")}for(z=0;z<s;z++){m+=String.fromCharCode(arguments[o]>>8&255);m+=String.fromCharCode(arguments[o]&255);o++}break;case"N":if(s==="*"){s=arguments.length-o}if(s>(arguments.length-o)){throw new Error("Warning:  pack() Type "+E+": too few arguments")}for(z=0;z<s;z++){m+=String.fromCharCode(arguments[o]>>24&255);m+=String.fromCharCode(arguments[o]>>16&255);m+=String.fromCharCode(arguments[o]>>8&255);m+=String.fromCharCode(arguments[o]&255);o++}break;default:throw new Error("Warning:  pack() Type "+E+": unknown format code")}}if(o<arguments.length){throw new Error("Warning: pack(): "+(arguments.length-o)+" arguments unused")}return m}
+}
+
+// Regex fragment that matches an escaped character in a double quoted
+// string.
+// why escape quotes, ffs!
+YamlUnescaper.REGEX_ESCAPED_CHARACTER = '\\\\([0abt\tnvfre "\\/\\\\N_LP]|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|U[0-9a-fA-F]{8})';
+
+/**
+ * YamlDumper dumps JS variables to YAML strings.
+ *
+ * @author Fabien Potencier <fabien@symfony.com>
+ */
+var YamlDumper = function(){};
+YamlDumper.prototype =
+{
+	/**
+	 * Dumps a JS value to YAML.
+	 *
+	 * @param	mixed	 input	The JS value
+	 * @param	integer inline The level where you switch to inline YAML
+	 * @param	integer indent The level o indentation indentation (used internally)
+	 *
+	 * @return string	The YAML representation of the JS value
+	 */
+	dump: function(input, inline, indent)
+	{
+		if ( inline == null ) inline = 0;
+		if ( indent == null ) indent = 0;
+		var output = '';
+		var prefix = indent ? this.strRepeat(' ', indent) : '';
+		var yaml;
+		if (!this.numSpacesForIndentation) this.numSpacesForIndentation = 2;
+
+		if ( inline <= 0 || !this.isObject(input) || this.isEmpty(input) )
+		{
+			yaml = new YamlInline();
+			output += prefix + yaml.dump(input);
+		}
+		else
+		{
+			var isAHash = !this.arrayEquals(this.getKeys(input), this.range(0,input.length - 1));
+			var willBeInlined;
+			
+			for ( var key in input )
+			{
+				if ( input.hasOwnProperty(key) )
+				{
+					willBeInlined = inline - 1 <= 0 || !this.isObject(input[key]) || this.isEmpty(input[key]);
+					
+					if ( isAHash ) yaml = new YamlInline();
+					
+					output += 
+						prefix + '' +
+						(isAHash ? yaml.dump(key)+':' : '-') + '' +
+						(willBeInlined ? ' ' : "\n") + '' +
+						this.dump(input[key], inline - 1, (willBeInlined ? 0 : indent + this.numSpacesForIndentation)) + '' +
+						(willBeInlined ? "\n" : '');
+				}
+			}
+		}
+
+		return output;
+	},
+	
+	strRepeat: function(str /* String */, count /* Integer */)
+	{
+		var i;
+		var result = '';
+		for ( i = 0; i < count; i++ ) result += str;
+		return result;
+	},
+	
+	isObject: function(input)
+	{
+		return this.isDefined(input) && typeof(input) == 'object';
+	},
+	
+	isEmpty: function(input)
+	{
+		var ret = input == undefined || input == null || input == '' || input == 0 || input == "0" || input == false;
+		if ( !ret && typeof(input) == "object" && !(input instanceof Array)){
+			var propCount = 0;
+			for ( var key in input )
+				if ( input.hasOwnProperty(key) ) propCount++;
+			ret = !propCount;
+		}
+		return ret;
+	},
+	
+	isDefined: function(input)
+	{
+		return input != undefined && input != null;
+	},
+	
+	getKeys: function(tab)
+	{
+		var ret = [];
+		
+		for ( var name in tab )
+		{
+			if ( tab.hasOwnProperty(name) )
+			{
+				ret.push(name);
+			}
+		}
+		
+		return ret;
+	},
+	
+	range: function(start, end)
+	{
+		if ( start > end ) return [];
+		
+		var ret = [];
+		
+		for ( var i = start; i <= end; i++ )
+		{
+			ret.push(i);
+		}
+		
+		return ret;
+	},
+	
+	arrayEquals: function(a,b)
+	{
+		if ( a.length != b.length ) return false;
+		
+		var len = a.length;
+		
+		for ( var i = 0; i < len; i++ )
+		{
+			if ( a[i] != b[i] ) return false;
+		}
+		
+		return true;
+	}
+};
+})();
+
+},{"fs":13}]},{},[5])

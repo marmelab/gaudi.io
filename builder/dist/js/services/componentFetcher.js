@@ -1,48 +1,54 @@
 require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*global angular,document*/
+/*global require,angular*/
 
-angular.module('gaudiBuilder').directive('droppable', function () {
+angular.module('gaudiBuilder').service('componentFetcher', function ($q, $http) {
     'use strict';
 
-    return {
-        scope: {
-            droppable: '='
-        },
-        link: function (scope, element) {
-            var el = element[0];
+    var availableComponents = null;
 
-            el.addEventListener('dragover', function (e) {
-                e.dataTransfer.dropEffect = 'move';
+    /**
+     * Retrieve all components
+     *
+     * @returns {promise}
+     */
+    function getAllComponents() {
+        var deferred = $q.defer();
 
-                if (e.preventDefault) {
-                    e.preventDefault();
-                }
+        if (availableComponents) {
+            deferred.resolve(availableComponents);
+        } else {
+            $http.get('data/components.json').success(function (data) {
+                availableComponents = data;
 
-                return false;
-            }, false);
-
-            el.addEventListener('drop', function (e) {
-                // Stops some browsers from redirecting.
-                if (e.stopPropagation) {
-                    e.stopPropagation();
-                }
-
-                var elementDropped = document.getElementById(e.dataTransfer.getData('id')),
-                    dropMethod = scope.droppable;
-
-                // call the drop passed drop function
-                if (typeof dropMethod === 'function') {
-                    scope.droppable(elementDropped, element[0], e);
-                }
-
-                return false;
-            }, false);
+                deferred.resolve(data);
+            });
         }
+
+        return deferred.promise;
+    }
+
+    return {
+        getAllComponents: getAllComponents
     };
 });
 
 },{}],"BU4qJ2":[function(require,module,exports){
 (function (global){
+(function browserifyShim(module, define) {
+
+; global.$ = require("jquery");
+(function browserifyShim(module, define) {
+
+; global.$ = require("jquery");
+(function browserifyShim(module, define) {
+
+; global.$ = require("jquery");
+(function browserifyShim(module, define) {
+
+; global.$ = require("jquery");
+(function browserifyShim(module, define) {
+
+; global.$ = require("jquery");
 (function browserifyShim(module, define) {
 
 ; global.$ = require("jquery");
@@ -147,11 +153,36 @@ jQuery.fn.sortElements = (function(){
 
 }).call(global, module, undefined);
 
+}).call(global, module, undefined);
+
+}).call(global, module, undefined);
+
+}).call(global, module, undefined);
+
+}).call(global, module, undefined);
+
+}).call(global, module, undefined);
+
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"jquery":"lwLqBl"}],"jquery.sortElements":[function(require,module,exports){
 module.exports=require('BU4qJ2');
 },{}],"k3mQBb":[function(require,module,exports){
 (function (global){
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+
+; global.underscore = require("underscore");
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+
+; global.underscore = require("underscore");
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+
+; global.underscore = require("underscore");
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+
+; global.underscore = require("underscore");
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+
+; global.underscore = require("underscore");
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 
 ; global.underscore = require("underscore");
@@ -827,11 +858,36 @@ module.exports=require('BU4qJ2');
 
 }).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
+; browserify_shim__define__module__export__(typeof vectorizer != "undefined" ? vectorizer : window.vectorizer);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof vectorizer != "undefined" ? vectorizer : window.vectorizer);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof vectorizer != "undefined" ? vectorizer : window.vectorizer);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof vectorizer != "undefined" ? vectorizer : window.vectorizer);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof vectorizer != "undefined" ? vectorizer : window.vectorizer);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"underscore":"9eM++n"}],"vectorizer":[function(require,module,exports){
 module.exports=require('k3mQBb');
 },{}],"lwLqBl":[function(require,module,exports){
 (function (global){
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
@@ -10058,11 +10114,36 @@ return jQuery;
 
 }).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
+; browserify_shim__define__module__export__(typeof $ != "undefined" ? $ : window.$);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof $ != "undefined" ? $ : window.$);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof $ != "undefined" ? $ : window.$);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof $ != "undefined" ? $ : window.$);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof $ != "undefined" ? $ : window.$);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],"jquery":[function(require,module,exports){
 module.exports=require('lwLqBl');
 },{}],"9eM++n":[function(require,module,exports){
 (function (global){
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
@@ -11413,6 +11494,26 @@ module.exports=require('lwLqBl');
     });
   }
 }).call(this);
+
+; browserify_shim__define__module__export__(typeof _ != "undefined" ? _ : window._);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof _ != "undefined" ? _ : window._);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof _ != "undefined" ? _ : window._);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof _ != "undefined" ? _ : window._);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof _ != "undefined" ? _ : window._);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 ; browserify_shim__define__module__export__(typeof _ != "undefined" ? _ : window._);
 

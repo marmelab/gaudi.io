@@ -4,6 +4,7 @@ var browserify  = require('gulp-browserify');
 var concat      = require('gulp-concat');
 var styl        = require('gulp-styl');
 var refresh     = require('gulp-livereload');
+var stringify  = require('stringify');
 var lr          = require('tiny-lr');
 var server      = lr();
 
@@ -12,6 +13,8 @@ function buildScripts() {
 
     gulp.src(['builder/src/js/**/*.js'])
         .pipe(browserify({
+            paths: ['builder/src/js/', 'node_modules'],
+            transform: [stringify(['.html'])],
             shim: {
                 jquery: {
                     path: 'node_modules/jquery/dist/jquery.js',
@@ -54,7 +57,7 @@ function createLiveReloadServer() {
 
     server.listen(35729, function (err) {
         if (err) {
-            return console.log(err);
+            createLiveReloadServer();
         }
     });
 }
