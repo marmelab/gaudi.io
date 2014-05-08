@@ -14,12 +14,7 @@ window._ = require('underscore/underscore');
 
 window.Backbone = require('backbone');
 window.Backbone.$ = $;
-
-require('jqueryui/ui/core');
-require('jqueryui/ui/widget');
-require('jqueryui/ui/mouse');
-require('jqueryui/ui/draggable');
-require('jqueryui/ui/droppable');
+window.Backbone.$ = $;
 
 // require jointjs
 require('./joint');
@@ -27,6 +22,9 @@ require('./joint');
 require('./gaudi-graph-element');
 
 var gaudiConfigBuilder = angular.module('gaudiConfigBuilder', ['ui.bootstrap.modal']);
+
+require('./directives/draggable');
+require('./directives/droppable');
 
 var graph = new joint.dia.Graph();
 
@@ -82,19 +80,6 @@ function parseMapValue(map) {
     return results;
 }
 
-gaudiConfigBuilder.directive("onFinishRender", function ($timeout) {
-    return {
-        restrict: 'A',
-        link: function (scope, element, attr) {
-            if (scope.$last) {
-                $timeout(function() {
-                    scope.$emit(attr.onFinishRender);
-                });
-            }
-        }
-    };
-});
-
 gaudiConfigBuilder.controller('componentsController', function ($scope, $http, builder) {
     $scope.availableComponents = {};
 
@@ -102,15 +87,6 @@ gaudiConfigBuilder.controller('componentsController', function ($scope, $http, b
         $scope.availableComponents = data;
         builder.availableComponents = data;
     });
-
-    function initDraggable() {
-        $(".components li:not([class*='fixed'])").draggable({
-            revert: "invalid",
-            helper: "clone"
-        });
-    }
-
-    $scope.$on('onDisplayComponents', initDraggable);
 });
 
 
@@ -220,41 +196,36 @@ gaudiConfigBuilder.controller('boardController', function ($scope, $modal, build
         return getElementName(newName);
     }
 
-    $("#graphContainer").droppable({
-        accept: '.list-group-item',
-        drop: function (event, ui) {
-            var
-                element = ui.draggable[0],
-                draggableDocumentOffset = ui.helper.offset(),
-                droppableDocumentOffset = $(this).offset(),
-                left = draggableDocumentOffset.left - droppableDocumentOffset.left,
-                top = draggableDocumentOffset.top - droppableDocumentOffset.top,
-                type = element.attributes['data-type'].value,
-                name = getElementName(type),
-                rect;
+    $scope.handleDrop = function (component, board, event) {
+        var
+            droppableDocumentOffset = $(board).offset(),
+            left = event.x - droppableDocumentOffset.left,
+            top = event.y - droppableDocumentOffset.top,
+            type = component.attributes['data-type'].value,
+            name = getElementName(type),
+            rect;
 
-            rect = new joint.shapes.html.GaudiGraphComponent({
-                position: { x: left, y: top },
-                size: { width: 216, height: 90 },
-                label: $(element).find('.element').html().trim(),
-                name: name,
-                options: {interactive: true}
-            });
+        rect = new joint.shapes.html.GaudiGraphComponent({
+            position: { x: left, y: top },
+            size: { width: 216, height: 90 },
+            name: name,
+            logo: component.attributes['data-logo'].value,
+            options: {interactive: true}
+        });
 
-            graph.addCell(rect);
-            rect.on('createLink', onCreateLink);
-            rect.on('removeLink', onRemoveLink);
-            rect.on('onOpenDetail', onOpenDetail);
-            rect.on('onRemove', onRemove);
+        graph.addCell(rect);
+        rect.on('createLink', onCreateLink);
+        rect.on('removeLink', onRemoveLink);
+        rect.on('onOpenDetail', onOpenDetail);
+        rect.on('onRemove', onRemove);
 
-            $scope.components[name] = {
-                type: type,
-                links: []
-            };
+        $scope.components[name] = {
+            type: type,
+            links: []
+        };
 
-            $scope.$apply();
-        }
-    });
+        $scope.$apply();
+    };
 });
 
 gaudiConfigBuilder.controller('resultController', function ($scope, builder) {
@@ -265,7 +236,7 @@ gaudiConfigBuilder.controller('resultController', function ($scope, builder) {
             return '';
         }
 
-        for(var prop in object) {
+        for (var prop in object) {
             if (!object.hasOwnProperty(prop) || typeof object[prop] !== 'object') {
                 continue;
             }

@@ -5,7 +5,6 @@
     <title>Gaudi: Build Your Project's Architecture File</title>
     <link rel="stylesheet" href="dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="dist/css/bootstrap-theme.min.css"/>
-    <link rel="stylesheet" href="dist/css/jquery-ui-1.10.4.custom.min.css"/>
     <link rel="stylesheet" href="dist/css/joint.nojquery.min.css"/>
     <link rel="stylesheet" href="dist/css/app.css"/>
 </head>
@@ -20,7 +19,7 @@
         <div class="row content">
             <section class="col-md-3 sidebar">
                 <ul class="components list-group row" ng-controller="componentsController">
-                    <li class="list-group-item component col-md-6 clearfix" ng-repeat="(type, component) in availableComponents" data-type="{{ type }}" on-finish-render="onDisplayComponents">
+                    <li class="list-group-item component col-md-6 clearfix" ng-repeat="(type, component) in availableComponents" id="component-{{ $index }}" data-type="{{ type }}" data-logo="{{ component.logo }}" draggable="">
                         <div class="element">
                             <img ng-src="{{ component.logo }}" alt="{{ component.name }}" />
                             <span class="name">{{ component.name }}</span>
@@ -35,7 +34,7 @@
                 </ul>
 
                 <div id="result" ng-controller="resultController">
-                    <pre>{{ getFileResult() }}</pre>
+                    <pre draggable="">{{ getFileResult() }}</pre>
 
                     <p class="col-md-8">Download the result and try your architecture with <a href="https://github.com/marmelab/gaudi" target="_blank">Gaudi</a></p>
                     <button type="button" class="generate btn btn-primary btn-lg pull-right" ng-click="generateFile()">Download</button>
@@ -43,7 +42,7 @@
             </section>
 
             <section id="board" class="col-md-9" ng-controller="boardController">
-                <div id="graphContainer"></div>
+                <div id="graphContainer" droppable="handleDrop"></div>
             </section>
         </div>
     </div>

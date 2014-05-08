@@ -1,153 +1,41 @@
 require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*global $,joint,_,g*/
-joint.shapes.html = {};
+/*global angular*/
 
-joint.shapes.html.GaudiGraphComponent = joint.shapes.basic.Rect.extend({
-    defaults: joint.util.deepSupplement({
-        type: 'html.Element',
-        attrs: {
-            rect: { stroke: 'none', 'fill-opacity': 0 }
-        }
-    }, joint.shapes.basic.Rect.prototype.defaults)
-});
+/**
+ * @see: http://blog.parkji.co.uk/2013/08/11/native-drag-and-drop-in-angularjs.html
+ */
+angular.module('gaudiConfigBuilder').directive('draggable', function () {
+    'use strict';
 
-joint.shapes.html.ElementView = joint.dia.ElementView.extend({
+    return function (scope, element) {
+        // this gives us the native JS object
+        var el = element[0];
+        el.draggable = true;
 
-    link: null,
-    canUpdateLink: false,
+        el.addEventListener('dragstart', function (e) {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('id', this.id);
+            this.classList.add('drag');
 
-    template: [
-        '<div class="component">',
-        '<div class="element">',
-        '<span class="image"></span>',
-        '<span class="name"></span>',
-        '</div>',
-        '<div class="tools">',
-        '<button class="edit glyphicon glyphicon-wrench" data-container="body"></button>',
-        '<div class="create-link glyphicon glyphicon-record"></div>',
-        '<button class="close">&times;</button>',
-        '</div>',
-        '</div>'
-    ].join(''),
+            return false;
+        }, false);
 
-    initialize: function () {
-        _.bindAll(this, 'updateBox');
-        joint.dia.ElementView.prototype.initialize.apply(this, arguments);
+        el.addEventListener('dragend', function () {
+            this.classList.remove('drag');
 
-        this.$box = $(_.template(this.template)());
-
-        this.model.on('change', this.updateBox, this);
-        this.model.on('remove', this.removeBox, this);
-
-        this.updateBox();
-    },
-    render: function () {
-        joint.dia.ElementView.prototype.render.apply(this, arguments);
-        this.paper.$el.prepend(this.$box);
-        this.updateBox();
-
-        this.$box.find('.create-link').on('mousedown', this.createLink.bind(this));
-        this.$box.find('.edit').on('click', this.triggerOpenDetail.bind(this));
-        this.$box.find('.close').on('click', _.bind(this.model.remove, this.model));
-        this.$box.attr('data-type', this.model.get('componentType'));
-        this.$box.find('.image').html('<img alt="MySQL" src="' + this.model.get('logo') + '">');
-        this.$box.find('.name').html(this.model.get('name'));
-
-        this.paper.$el.mousemove(this.onMouseMove.bind(this));
-        this.paper.$el.mouseup(this.onMouseUp.bind(this));
-
-        this.updateName();
-
-        return this;
-    },
-
-    updateName: function () {
-        this.$box.find('.name').html(this.model.get('name'));
-    },
-
-    updateBox: function () {
-        var bbox = this.model.getBBox();
-
-        this.updateName();
-
-        this.$box.css({ width: bbox.width, height: bbox.height, left: bbox.x, top: bbox.y, transform: 'rotate(' + (this.model.get('angle') || 0) + 'deg)' });
-    },
-
-    removeBox: function (evt) {
-        this.model.trigger('onRemove');
-
-        this.$box.remove();
-    },
-
-    triggerOpenDetail: function (e) {
-        e.preventDefault();
-
-        this.model.trigger('onOpenDetail');
-    },
-
-    createLink: function (evt) {
-        var self = this,
-            paperOffset = this.paper.$el.offset(),
-            targetOffset = $(evt.target).offset(),
-            x = targetOffset.left - paperOffset.left,
-            y = targetOffset.top  - paperOffset.top;
-
-        this.link = new joint.dia.Link({
-            source: {id: this.model.get('id')},
-            target: g.point(x, y),
-            z: -1,
-            attrs: {
-                '.connection': { stroke: '#49ae80', 'stroke-width': 6, opacity: 0.5 },
-                '.marker-target': { stroke: '#49ae80', fill: '#49ae80', 'stroke-width': 2, d: 'M 10 0 L 0 5 L 10 10 z' },
-                '.marker-source': { stroke: '#49ae80', fill: '#49ae80', 'stroke-width': 2, d: 'M 10 0 L 0 5 L 10 10 z' },
-                '.marker-vertices': {display: 'none'}
-            }
-        });
-        this.paper.model.addCell(this.link);
-
-        // marker arrow color change
-        this.link.on('remove', function (lnk) {
-            self.model.trigger('removeLink', lnk.get('source').id, lnk.get('target').id);
-        });
-
-        this.link.on('change:target', function (lnk) {
-            var target = lnk.get('target');
-
-            // Check if the second arrow is uppon a rect at the first d&d (at the second jointjs will handle it correctly)
-            if (typeof (target.id) === 'undefined') {
-                var rect = self.paper.findViewsFromPoint(g.point(target.x, target.y))[0];
-                if (!rect || lnk.get('source').id === rect.model.get('id')) {
-                    return;
-                }
-
-                target = rect;
-                target.$el.addClass('arrowOver');
-                lnk.set('target', {id: target.model.get('id')});
-                return;
-            }
-
-            self.model.trigger('createLink', target.id);
-        });
-
-        this.canUpdateLink = true;
-    },
-
-    onMouseUp: function () {
-        this.canUpdateLink = false;
-        this.paper.$el.find('.component').css("z-index", 1);
-    },
-
-    onMouseMove: function (evt) {
-        if (!this.link || !this.canUpdateLink || evt.offsetX <= 10) {
-            return;
-        }
-
-        this.link.set('target', g.point(evt.offsetX, evt.offsetY));
-    }
+            return false;
+        }, false);
+    };
 });
 
 },{}],"BU4qJ2":[function(require,module,exports){
 (function (global){
+(function browserifyShim(module, define) {
+
+; global.$ = require("jquery");
+(function browserifyShim(module, define) {
+
+; global.$ = require("jquery");
 (function browserifyShim(module, define) {
 
 ; global.$ = require("jquery");
@@ -227,11 +115,21 @@ jQuery.fn.sortElements = (function(){
 
 }).call(global, module, undefined);
 
+}).call(global, module, undefined);
+
+}).call(global, module, undefined);
+
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"jquery":"lwLqBl"}],"jquery.sortElements":[function(require,module,exports){
 module.exports=require('BU4qJ2');
 },{}],"k3mQBb":[function(require,module,exports){
 (function (global){
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+
+; global.underscore = require("underscore");
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+
+; global.underscore = require("underscore");
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 
 ; global.underscore = require("underscore");
@@ -872,11 +770,21 @@ module.exports=require('BU4qJ2');
 
 }).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
+; browserify_shim__define__module__export__(typeof vectorizer != "undefined" ? vectorizer : window.vectorizer);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof vectorizer != "undefined" ? vectorizer : window.vectorizer);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"underscore":"9eM++n"}],"vectorizer":[function(require,module,exports){
 module.exports=require('k3mQBb');
 },{}],"lwLqBl":[function(require,module,exports){
 (function (global){
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 /*!
@@ -10078,11 +9986,21 @@ return jQuery;
 
 }).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
+; browserify_shim__define__module__export__(typeof $ != "undefined" ? $ : window.$);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof $ != "undefined" ? $ : window.$);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],"jquery":[function(require,module,exports){
 module.exports=require('lwLqBl');
 },{}],"9eM++n":[function(require,module,exports){
 (function (global){
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
+(function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 //     Underscore.js 1.6.0
@@ -11428,6 +11346,14 @@ module.exports=require('lwLqBl');
     });
   }
 }).call(this);
+
+; browserify_shim__define__module__export__(typeof _ != "undefined" ? _ : window._);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+; browserify_shim__define__module__export__(typeof _ != "undefined" ? _ : window._);
+
+}).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 ; browserify_shim__define__module__export__(typeof _ != "undefined" ? _ : window._);
 

@@ -13,8 +13,7 @@
         "angular": "angular/bower-angular",
         "angular-route": "angular/bower-angular-route",
         "angular-bootstrap": "angular-ui/bootstrap",
-        "joint": "DavidDurman/joint",
-        "jqueryui": "jquery/jquery-ui"
+        "joint": "DavidDurman/joint"
     },
     "dependencies": {
         "underscore": "~1.6.0",
