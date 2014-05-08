@@ -23,7 +23,8 @@
     "yamljs": "~0.1.5",
     "jquery": "~2.1.1",
     "browserify-fs": "~1.0.0",
-    "stringify": "~2.1.0"
+    "stringify": "~2.1.0",
+    "gulp-uglify": "~0.2.1"
   },
   "devDependencies": {
     "napa": "~0.4.1",

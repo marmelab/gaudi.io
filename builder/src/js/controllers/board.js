@@ -1,10 +1,13 @@
 /*global angular,require*/
 
+window._            = require('underscore/underscore');
 window.Backbone     = require('backbone');
 window.Backbone.$   = $;
 var graphElement    = require('jointjs/element');
 var graph           = require('jointjs/graph');
 
+require('angular-bootstrap/src/transition/transition');
+require('angular-bootstrap/src/modal/modal');
 require('jointjs/paper');
 require('directives/droppable');
 require('services/selectedComponents');
@@ -102,31 +105,13 @@ angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal,
         });
     }
 
-    function getElementName(type) {
-        type = type.replace('-', '_');
-        if ($scope.components[type] === undefined) {
-            return type;
-        }
-
-        var infos = type.split('_'),
-            nbInfos = infos.length,
-            newName;
-
-        if (nbInfos > 1 && parseInt(infos[nbInfos - 1], 10) > 0) {
-            newName = infos.slice(0, nbInfos - 1).join('_') + '_' + (Number(infos[nbInfos - 1]) + 1);
-        } else {
-            newName = type + '_' + 1;
-        }
-        return getElementName(newName);
-    }
-
     $scope.handleDrop = function (component, board, event) {
         var
             droppableDocumentOffset = $(board).offset(),
             left = event.x - droppableDocumentOffset.left,
             top = event.y - droppableDocumentOffset.top,
             type = component.attributes['data-type'].value,
-            name = getElementName(type),
+            name = selectedComponents.getElementName(type),
             rect;
 
         rect = new graphElement({

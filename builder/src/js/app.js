@@ -2,9 +2,6 @@
 
 require('angular/angular');
 require('angular-route/angular-route');
-require('angular-bootstrap/src/transition/transition');
-require('angular-bootstrap/src/modal/modal');
-window._ = require('underscore/underscore');
 window.jQuery = require('jquery');
 
 angular.module('gaudiBuilder', ['ui.bootstrap.modal']);

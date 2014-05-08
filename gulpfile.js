@@ -4,7 +4,9 @@ var browserify  = require('gulp-browserify');
 var concat      = require('gulp-concat');
 var styl        = require('gulp-styl');
 var refresh     = require('gulp-livereload');
-var stringify  = require('stringify');
+var ngmin       = require('gulp-ngmin');
+var uglify      = require('gulp-uglify');
+var stringify   = require('stringify');
 var lr          = require('tiny-lr');
 var server      = lr();
 
@@ -40,6 +42,8 @@ function buildScripts() {
                 }
             }
         }))
+        .pipe(ngmin())
+        .pipe(uglify({mangle: false}))
         .pipe(gulp.dest('builder/dist/js'))
         .pipe(refresh(server));
 }
