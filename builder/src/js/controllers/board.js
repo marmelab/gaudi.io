@@ -110,8 +110,9 @@ angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal,
             droppableDocumentOffset = $(board).offset(),
             left = event.x - droppableDocumentOffset.left,
             top = event.y - droppableDocumentOffset.top,
-            type = component.attributes['data-type'].value,
+            type = component.attributes['data-name'].value,
             name = selectedComponents.getElementName(type),
+            isBinary = component.attributes['data-type'].value === 'binary',
             rect;
 
         rect = new graphElement({
@@ -119,6 +120,7 @@ angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal,
             size: { width: 216, height: 90 },
             name: name,
             logo: component.attributes['data-logo'].value,
+            binary: isBinary,
             options: {interactive: true}
         });
 
@@ -130,6 +132,7 @@ angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal,
 
         $scope.components[name] = {
             type: type,
+            binary: isBinary,
             links: []
         };
 

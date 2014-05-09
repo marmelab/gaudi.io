@@ -54,6 +54,7 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         this.$box.attr('data-type', this.model.get('componentType'));
         this.$box.find('.image').html('<img alt="MySQL" src="' + this.model.get('logo') + '">');
         this.$box.find('.name').html(this.model.get('name'));
+        this.$box.addClass(this.model.get('binary') ? 'binary' : '');
 
         this.paper.$el.mousemove(this.onMouseMove.bind(this));
         this.paper.$el.mouseup(this.onMouseUp.bind(this));
@@ -136,7 +137,7 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
 
     onMouseUp: function () {
         this.canUpdateLink = false;
-        this.paper.$el.find('.component').css("z-index", 1);
+        this.paper.$el.find('.component').css('z-index', 1);
     },
 
     onMouseMove: function (evt) {

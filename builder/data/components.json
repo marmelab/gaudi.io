@@ -1,10 +1,14 @@
 {
     "apache": {
         "name": "Apache",
+        "type": "application",
         "logo": "./img/logos/apache.jpg",
         "fields": {
             "ports" : {"label": "Ports :", "type": "text", "default": "80: 80", "multiple": true},
-            "volumes" : {"label": "Volumes :", "type": "text", "default": ".: /var/www", "multiple": true}
+            "volumes" : {"label": "Volumes :", "type": "text", "default": ".: /var/www", "multiple": true},
+            "before_script" : {"label": "Before script :", "type": "text", "default": ""},
+            "after_script" : {"label": "After script :", "type": "text", "default": ""},
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": ""}
         },
         "customFields": {
             "fastCgi": {"label": "Forward fast CGI to :", "type": "link"},
@@ -14,21 +18,30 @@
     },
     "nginx": {
         "name": "Nginx",
+        "type": "application",
         "logo": "./img/logos/nginx.jpg",
         "fields": {
             "ports" : {"label": "Ports :", "type": "text", "default": "80: 80"},
-            "volumes" : {"label": "Volumes :", "type": "text", "default": ".: /var/www"}
+            "volumes" : {"label": "Volumes :", "type": "text", "default": ".: /var/www"},
+            "before_script" : {"label": "Before script :", "type": "text", "default": ""},
+            "after_script" : {"label": "After script :", "type": "text", "default": ""},
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": ""}
         },
         "customFields": {
-            "backends": {"label": "Backends :", "type": "links"}
+            "backends": {"label": "Backends :", "type": "links"},
+            "documentRoot": {"label": "DocumentRoot :", "type": "text", "default": "/var/www"}
         }
     },
     "varnish": {
         "name": "Varnish",
+        "type": "application",
         "logo": "./img/logos/varnish.png",
         "fields": {
             "ports" : {"label": "Ports :", "type": "text", "default": "80: 80", "multiple": true},
-            "volumes" : {"label": "Volumes :", "type": "text", "default": ".: /var/www", "multiple": true}
+            "volumes" : {"label": "Volumes :", "type": "text", "default": ".: /var/www", "multiple": true},
+            "before_script" : {"label": "Before script :", "type": "text", "default": ""},
+            "after_script" : {"label": "After script :", "type": "text", "default": ""},
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": ""}
         },
         "customFields": {
             "backends": {"label": "Backends :", "type": "links"}
@@ -36,35 +49,142 @@
     },
     "mysql": {
         "name": "MySQL",
+        "type": "application",
         "logo": "./img/logos/mysql.png",
         "fields": {
             "ports" : {"label": "Ports :", "type": "text", "default": "3306: 3306", "multiple": true},
             "volumes" : {"label": "Volumes :", "type": "text", "default": ".gaudi/mysql: /var/lib/mysql", "multiple": true},
-            "after_script" : {"label": "After script :", "type": "text", "default": ""}
+            "before_script" : {"label": "Before script :", "type": "text", "default": ""},
+            "after_script" : {"label": "After script :", "type": "text", "default": ""},
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": ""}
         },
         "customFields": {
         }
     },
     "php": {
         "name": "PHP",
-        "logo": "./img/logos/php.png"
+        "type": "application",
+        "logo": "./img/logos/php.png",
+        "fields": {
+            "volumes" : {"label": "Volumes :", "type": "text", "default": ".: /var/www", "multiple": true},
+            "after_script" : {"label": "After script :", "type": "text", "default": ""},
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": ""}
+        }
     },
     "php-fpm": {
         "name": "PHP-FPM",
+        "type": "application",
         "logo": "./img/logos/php.png",
         "fields": {
             "ports" : {"label": "Ports :", "type": "text", "default": "9000: 9000", "multiple": true},
             "volumes" : {"label": "Volumes :", "type": "text", "default": ".: /var/www", "multiple": true},
-            "modules": {"label": "Modules :", "type": "choices", "choices": ["gd", "apc", "zip"]}
+            "modules": {"label": "Modules :", "type": "choices", "choices": ["gd", "apc", "zip"]},
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": ""}
+        }
+    },
+    "hhvm": {
+        "name": "HHVM",
+        "type": "application",
+        "logo": "./img/logos/HHVM.png",
+        "fields": {
+            "ports" : {"label": "Ports :", "type": "text", "default": "9000: 9000", "multiple": true},
+            "volumes" : {"label": "Volumes :", "type": "text", "default": ".: /var/www", "multiple": true},
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": ""}
         }
     },
     "nodejs": {
         "name": "Node.js",
+        "type": "application",
         "logo": "./img/logos/nodejs.png",
         "fields": {
             "ports" : {"label": "Ports :", "type": "text", "default": "80: 80", "multiple": true},
             "volumes" : {"label": "Volumes :", "type": "text", "default": ".: /app", "multiple": true},
-            "after_script" : {"label": "After script :", "type": "text", "default": "node /app/server.js"}
+            "after_script" : {"label": "After script :", "type": "text", "default": "node /app/server.js"},
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": ""}
+        }
+    },
+    "cassandra": {
+        "name": "Cassandra",
+        "type": "application",
+        "logo": "./img/logos/cassandra.png",
+        "fields": {
+            "ports" : {"label": "Ports :", "type": "text", "default": "9160: 9160, 7000: 7000", "multiple": true},
+            "volumes" : {"label": "Volumes :", "type": "text", "default": ".gaudi/cassandra: /var/log/cassandra", "multiple": true},
+            "before_script" : {"label": "Before script :", "type": "text", "default": ""},
+            "after_script" : {"label": "After script :", "type": "text", "default": ""},
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": ""}
+        },
+        "customFields": {
+            "maxHeapSize": {"label": "MaxHeapSize :", "type": "text", "default": "512M"},
+            "heapNewSize": {"label": "HeapNewSize :", "type": "text", "default": "128M"}
+        }
+    },
+    "jackrabbit": {
+        "name": "Jackrabbit",
+        "type": "application",
+        "logo": "./img/logos/jackrabbit.gif",
+        "fields": {
+            "ports" : {"label": "Ports :", "type": "text", "default": "8080: 8080", "multiple": true},
+            "volumes" : {"label": "Volumes :", "type": "text", "default": ".gaudi/jackrabbit: /opt/jackrabbit/jackrabbit", "multiple": true},
+            "before_script" : {"label": "Before script :", "type": "text", "default": ""},
+            "after_script" : {"label": "After script :", "type": "text", "default": ""},
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": ""}
+        },
+        "customFields": {
+        }
+    },
+    "phpmyadmin": {
+        "name": "phpMyAdmin",
+        "type": "application",
+        "logo": "./img/logos/phpmyadmin.png",
+        "fields": {
+            "ports" : {"label": "Ports :", "type": "text", "default": "80: 80", "multiple": true},
+            "volumes" : {"label": "Volumes :", "type": "text", "default": "", "multiple": true},
+            "before_script" : {"label": "Before script :", "type": "text", "default": ""},
+            "after_script" : {"label": "After script :", "type": "text", "default": ""},
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": ""}
+        },
+        "customFields": {
+        }
+    },
+    "bower": {
+        "name": "Bower",
+        "type": "binary",
+        "logo": "./img/logos/bower.png",
+        "fields": {
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": ""}
+        },
+        "customFields": {
+        }
+    },
+    "composer": {
+        "name": "Composer",
+        "type": "binary",
+        "logo": "./img/logos/composer.png",
+        "fields": {
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": ""}
+        },
+        "customFields": {
+        }
+    },
+    "jekyll": {
+        "name": "Jekyll",
+        "type": "binary",
+        "logo": "./img/logos/jekyll.png",
+        "fields": {
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": ""}
+        },
+        "customFields": {
+        }
+    },
+    "npm": {
+        "name": "Npm",
+        "type": "binary",
+        "logo": "./img/logos/npm.png",
+        "fields": {
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": ""}
+        },
+        "customFields": {
         }
     }
 }
