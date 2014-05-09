@@ -12,15 +12,15 @@ angular.module('gaudiBuilder').controller('editComponentCtrl', function ($scope,
         allComponents = components;
 
         // Inject fields types
-        $scope.fields = {};
-        $scope.fields.custom = allComponents[values.type].customFields;
-        $scope.fields.standard = allComponents[values.type].fields;
+        $scope.fields = {
+            common: allComponents[values.type].fields,
+            custom: allComponents[values.type].customFields || null
+        };
 
         // Inject fields values
         $scope.componentNames = Object.keys(selectedComponents.components);
         $scope.values = values;
-        $scope.values.custom = $scope.values.custom || {};
-        $scope.values.standard = $scope.values.standard || {};
+        $scope.values.custom = values.custom || {};
     });
 
     $scope.ok = function () {
@@ -29,21 +29,22 @@ angular.module('gaudiBuilder').controller('editComponentCtrl', function ($scope,
 
         delete $scope.values.name;
 
-        // Merge standard values with root element
-        angular.forEach($scope.values.standard, function (standardValue, standardName) {
-            // Check if the value is a map
-            if (typeof componentFields[standardName].multiple !== 'undefined' && componentFields[standardName].multiple && typeof standardValue === 'string') {
-                standardValue = yamlParser.parseMapValue(standardValue);
+        // Merge common values with root element
+        angular.forEach($scope.values, function (value, name) {
+            if (componentFields[name] === undefined) {
+                return;
             }
 
-            $scope.values[standardName] = standardValue;
+            // Check if the value is a map
+            if (componentFields[name].multiple === true && typeof value === 'string' && value !== '') {
+                $scope.values[name] = yamlParser.parseMapValue(value);
+            }
+
+            // Check if the value is an array
+            if (componentFields[name].array === true && typeof value === 'string' && value !== '') {
+                $scope.values[name] = value.split(/,\s*/);
+            }
         });
-
-        delete $scope.values.standard;
-
-        if (!Object.keys($scope.values.custom).length) {
-            delete $scope.values.custom;
-        }
 
         $modalInstance.close({name: name, values: $scope.values});
     };
@@ -11456,7 +11457,7 @@ angular.module('gaudiBuilder').service('yamlParser', function () {
                 continue;
             }
 
-            if (prop === 'standard') {
+            if (prop === 'common' || prop === 'binary') {
                 delete object[prop];
                 continue;
             }
@@ -11464,6 +11465,26 @@ angular.module('gaudiBuilder').service('yamlParser', function () {
             object[prop] = cleanEmptyObjects(object[prop]);
             if (_.isEmpty(object[prop])) {
                 delete object[prop];
+            }
+        }
+
+        return object;
+    }
+
+    function cleanResult(object) {
+        for (var prop in object) {
+            if (!object.hasOwnProperty(prop)) {
+                continue;
+            }
+
+            // Remove binary field & empty string
+            if (prop === 'binary' || object[prop] === '') {
+                delete object[prop];
+                continue;
+            }
+
+            if(typeof object[prop] === 'object') {
+                object[prop] = cleanResult(object[prop]);
             }
         }
 
@@ -11488,6 +11509,7 @@ angular.module('gaudiBuilder').service('yamlParser', function () {
     return {
         parseMapValue: parseMapValue,
         cleanEmptyObjects: cleanEmptyObjects,
+        cleanResult: cleanResult,
         dump: dump
     };
 });

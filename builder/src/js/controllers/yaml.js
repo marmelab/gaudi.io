@@ -19,6 +19,7 @@ angular.module('gaudiBuilder').controller('yamlCtrl', function ($scope, selected
         });
 
         results = yamlParser.cleanEmptyObjects(JSON.parse(JSON.stringify(results)));
+        results = yamlParser.cleanResult(results);
         if (_.isEmpty(results)) {
             results = '';
         }

@@ -23212,8 +23212,6 @@ module.exports=require('lwLqBl');
 }.call(this));
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],"underscore":[function(require,module,exports){
-module.exports=require('9eM++n');
 },{}],"9eM++n":[function(require,module,exports){
 (function (global){
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
@@ -24601,6 +24599,8 @@ module.exports=require('9eM++n');
 }).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],"underscore":[function(require,module,exports){
+module.exports=require('9eM++n');
 },{}],26:[function(require,module,exports){
 var geometry    = require('joint/src/geometry');
 var graph       = require('joint/src/joint.dia.graph');

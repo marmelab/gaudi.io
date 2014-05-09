@@ -20,6 +20,7 @@ angular.module('gaudiBuilder').controller('yamlCtrl', function ($scope, selected
         });
 
         results = yamlParser.cleanEmptyObjects(JSON.parse(JSON.stringify(results)));
+        results = yamlParser.cleanResult(results);
         if (_.isEmpty(results)) {
             results = '';
         }
@@ -11461,7 +11462,7 @@ angular.module('gaudiBuilder').service('yamlParser', function () {
                 continue;
             }
 
-            if (prop === 'standard') {
+            if (prop === 'common' || prop === 'binary') {
                 delete object[prop];
                 continue;
             }
@@ -11469,6 +11470,26 @@ angular.module('gaudiBuilder').service('yamlParser', function () {
             object[prop] = cleanEmptyObjects(object[prop]);
             if (_.isEmpty(object[prop])) {
                 delete object[prop];
+            }
+        }
+
+        return object;
+    }
+
+    function cleanResult(object) {
+        for (var prop in object) {
+            if (!object.hasOwnProperty(prop)) {
+                continue;
+            }
+
+            // Remove binary field & empty string
+            if (prop === 'binary' || object[prop] === '') {
+                delete object[prop];
+                continue;
+            }
+
+            if(typeof object[prop] === 'object') {
+                object[prop] = cleanResult(object[prop]);
             }
         }
 
@@ -11493,6 +11514,7 @@ angular.module('gaudiBuilder').service('yamlParser', function () {
     return {
         parseMapValue: parseMapValue,
         cleanEmptyObjects: cleanEmptyObjects,
+        cleanResult: cleanResult,
         dump: dump
     };
 });
