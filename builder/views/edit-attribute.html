@@ -1,13 +1,13 @@
 <label for="{{ name }}" class="col-sm-3 control-label">{{ field.label }}</label>
 
-<div class="col-sm-9">
-    <input id="{{ name }}" class="form-control" ng-switch-when="text" type="text" ng-model="values[fieldsType][name]" ng-init="values[fieldsType][name]=field.default" />
+<div class="col-sm-9" ng-switch="field.type">
+    <input id="{{ name }}" class="form-control" ng-switch-when="text" type="text" ng-model="values[name]" ng-init="values[name] = values[name] || field.default" />
 
-    <select id="{{ name }}" class="form-control" ng-switch-when="link" ng-model="values[fieldsType][name]" ng-options="option as option for option in componentNames"></select>
+    <select id="{{ name }}" class="form-control" ng-switch-when="link" ng-model="values[name]" ng-options="option as option for option in componentNames"></select>
 
-    <select id="{{ name }}" class="form-control" ng-switch-when="links" ng-model="values[fieldsType][name]" multiple ng-multiple="true" ng-options="option as option for option in componentNames"></select>
+    <select id="{{ name }}" class="form-control" ng-switch-when="links" ng-model="values[name]" multiple ng-multiple="true" ng-options="option as option for option in componentNames"></select>
 
-    <select id="{{ name }}" class="form-control" ng-switch-when="choice" ng-model="values[fieldsType][name]" ng-options="option as option for option in field.choices"></select>
+    <select id="{{ name }}" class="form-control" ng-switch-when="choice" ng-model="values[name]" ng-options="option as option for option in field.choices"></select>
 
-    <select id="{{ name }}" class="form-control" ng-switch-when="choices" ng-model="values[fieldsType][name]" multiple ng-multiple="{{ field.multiple }}" ng-options="option as option for option in field.choices"></select>
+    <select id="{{ name }}" class="form-control" ng-switch-when="choices" ng-model="values[name]" multiple ng-multiple="{{ field.multiple }}" ng-options="option as option for option in field.choices"></select>
 </div>

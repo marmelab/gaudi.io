@@ -110,10 +110,19 @@ html, body, .container-fluid, .sidebar {
     opacity: 1;
 }
 
+#board .component.binary {
+    background: #cccccc;
+}
+
 #result .generate, .modal-footer .btn-primary {
     border: 1px solid #c1c1c1;;
     background-color: #49ae80;
     background-image: linear-gradient(to bottom,#4cb183 0,#49ae80 100%);
+}
+
+#result .btn-primary {
+    position: absolute;
+    right: 0;
 }
 
 .modal-footer .btn-warning {
@@ -144,6 +153,8 @@ form .error {
     box-shadow: none;
     -webkit-box-shadow:none;
     margin-left: 0;
+    height: 400px;
+    overflow-y: scroll;
 }
 
 .components .list-group-item.col-md-6 {
@@ -153,7 +164,11 @@ form .error {
 }
 
 .component img {
-    margin-right: 20px;
+    margin-right: 10px;
+}
+
+.components .phpmyadmin {
+    font-size: 11px;
 }
 
 .component .element {

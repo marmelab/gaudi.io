@@ -8,9 +8,18 @@ angular.module('gaudiBuilder').controller('yamlCtrl', function ($scope, selected
     $scope.components = selectedComponents.components;
 
     $scope.getFileResult = function () {
-        var results = $scope.components ? {applications: $scope.components} : '';
+        var results = {
+            applications: {},
+            binaries: {}
+        };
+
+        // Separate component into applications/binaries
+        angular.forEach($scope.components, function (component, name) {
+            results[component.binary ? 'binaries' : 'applications'][name] = component;
+        });
 
         results = yamlParser.cleanEmptyObjects(JSON.parse(JSON.stringify(results)));
+        results = yamlParser.cleanResult(results);
         if (_.isEmpty(results)) {
             results = '';
         }
