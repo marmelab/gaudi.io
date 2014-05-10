@@ -15,7 +15,9 @@ angular.module('gaudiBuilder').controller('yamlCtrl', function ($scope, selected
 
         // Separate component into applications/binaries
         angular.forEach($scope.components, function (component, name) {
-            results[component.binary ? 'binaries' : 'applications'][name] = component;
+            var componentResult = component.getOutputFields();
+
+            results[component.binary ? 'binaries' : 'applications'][name] = componentResult;
         });
 
         results = yamlParser.cleanEmptyObjects(JSON.parse(JSON.stringify(results)));

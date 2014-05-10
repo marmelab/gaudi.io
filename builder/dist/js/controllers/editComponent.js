@@ -24,29 +24,7 @@ angular.module('gaudiBuilder').controller('editComponentCtrl', function ($scope,
     });
 
     $scope.ok = function () {
-        var name = $scope.values.name,
-            componentFields = allComponents[$scope.values.type].fields;
-
-        delete $scope.values.name;
-
-        // Merge common values with root element
-        angular.forEach($scope.values, function (value, name) {
-            if (componentFields[name] === undefined) {
-                return;
-            }
-
-            // Check if the value is a map
-            if (componentFields[name].multiple === true && typeof value === 'string' && value !== '') {
-                $scope.values[name] = yamlParser.parseMapValue(value);
-            }
-
-            // Check if the value is an array
-            if (componentFields[name].array === true && typeof value === 'string' && value !== '') {
-                $scope.values[name] = value.split(/,\s*/);
-            }
-        });
-
-        $modalInstance.close({name: name, values: $scope.values});
+        $modalInstance.close({name: $scope.values.name, values: $scope.values});
     };
 
     $scope.cancel = function () {
@@ -11409,39 +11387,6 @@ angular.module('gaudiBuilder').service('yamlParser', function () {
     'use strict';
 
     /**
-     * Parse values like "80: 80, 8080: 8080" to [{80: 80}, {8080: 80}]
-     *
-     * @param {String} map
-     * @return {Array}
-     */
-    function parseMapValue(map) {
-        var results = {},
-            rawValues = map.split(','),
-            key,
-            value,
-            mapDetails;
-
-        angular.forEach(rawValues, function (rawValue) {
-            mapDetails = rawValue.split(':');
-
-            key = mapDetails[0].trim();
-            value = mapDetails[1].trim();
-
-            if (/^\d+$/.test(value)) {
-                value = parseInt(value, 10);
-            }
-
-            if (/^\d+$/.test(key)) {
-                key = parseInt(key, 10);
-            }
-
-            results[key] = value;
-        });
-
-        return results;
-    }
-
-    /**
      * Remove empty objects recursively from another object
      *
      * @param {Object} object
@@ -11507,7 +11452,6 @@ angular.module('gaudiBuilder').service('yamlParser', function () {
     }
 
     return {
-        parseMapValue: parseMapValue,
         cleanEmptyObjects: cleanEmptyObjects,
         cleanResult: cleanResult,
         dump: dump

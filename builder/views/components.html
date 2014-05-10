@@ -1,10 +1,10 @@
 <ul class="components list-group row">
     <li ng-repeat="(type, component) in components" class="list-group-item component col-md-6 clearfix {{ type }}"
-        id="component-{{ $index }}" data-name="{{ type }}"  data-type="{{ component.type }}" data-logo="{{ component.logo }}" draggable="">
+        id="component-{{ $index }}" data-type="{{ type }}"  data-binary="{{ component.bonary }}" data-logo="{{ component.logo }}" draggable="">
 
         <div class="element">
             <img ng-src="{{ component.logo }}" alt="{{ component.name }}" />
-            <span class="name">{{ component.name }}</span>
+            <span class="label">{{ component.label }}</span>
         </div>
     </li>
 

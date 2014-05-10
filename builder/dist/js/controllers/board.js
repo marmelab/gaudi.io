@@ -13,7 +13,7 @@ require('jointjs/paper');
 require('directives/droppable');
 require('services/selectedComponents');
 
-angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal, selectedComponents, $templateCache) {
+angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal, $templateCache, selectedComponents, componentFetcher) {
     'use strict';
 
     $templateCache.put('template/modal/backdrop.html', require('angular-bootstrap/template/modal/backdrop.html'));
@@ -21,14 +21,19 @@ angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal,
 
     $scope.components = selectedComponents.components;
 
-    function onCreateLink(targetId) {
-        var name = this.get('name'),
-            currentComponent = $scope.components[name],
-            linkedType = graph.getCell(targetId).get('name');
+    var allComponents = {};
 
-        if ($.inArray(linkedType, currentComponent.links) < 0) {
-            currentComponent.links.push(linkedType);
-        }
+    componentFetcher.getAllComponents().then(function (components) {
+        allComponents = components;
+    });
+
+    function onCreateLink(targetId) {
+        var sourceName = this.get('name'),
+            targetName = graph.getCell(targetId).get('name'),
+            source = $scope.components[sourceName],
+            target = $scope.components[targetName];
+
+        source.onCreateLink(target);
 
         $scope.$apply();
     }
@@ -37,11 +42,9 @@ angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal,
         var sourceName = graph.getCell(sourceId).get('name'),
             targetName = graph.getCell(targetId).get('name'),
             source = $scope.components[sourceName],
-            position;
+            target = $scope.components[targetName];
 
-        if (source !== undefined && (position = $.inArray(targetName, source.links)) >= 0) {
-            source.links.splice(position, 1);
-        }
+        source.onRemoveLink(target);
 
         $scope.$apply();
     }
@@ -111,9 +114,10 @@ angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal,
             droppableDocumentOffset = $(board).offset(),
             left = event.x - droppableDocumentOffset.left,
             top = event.y - droppableDocumentOffset.top,
-            type = component.attributes['data-name'].value,
+            type = component.attributes['data-type'].value,
             name = selectedComponents.getElementName(type),
-            isBinary = component.attributes['data-type'].value === 'binary',
+            componentInstance = allComponents[type],
+            isBinary = component.attributes['data-binary'].value === 'true',
             rect;
 
         rect = new graphElement({
@@ -131,11 +135,8 @@ angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal,
         rect.on('onOpenDetail', onOpenDetail);
         rect.on('onRemove', onRemove);
 
-        $scope.components[name] = {
-            type: type,
-            binary: isBinary,
-            links: []
-        };
+        $scope.components[name] = angular.copy(componentInstance);
+        $scope.components[name].name = name;
 
         $scope.$apply();
     };

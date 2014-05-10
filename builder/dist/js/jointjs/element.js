@@ -6925,9 +6925,7 @@ if (typeof exports === 'object') {
     module.exports.Link = joint.dia.Link;
     module.exports.LinkView = joint.dia.LinkView;
 }
-},{"./geometry":15,"./joint.dia.cell":16,"backbone":2,"lodash":23}],"vectorizer":[function(require,module,exports){
-module.exports=require('k3mQBb');
-},{}],"k3mQBb":[function(require,module,exports){
+},{"./geometry":15,"./joint.dia.cell":16,"backbone":2,"lodash":23}],"k3mQBb":[function(require,module,exports){
 (function (global){
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 
@@ -7612,7 +7610,9 @@ module.exports=require('k3mQBb');
 }).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"underscore":"9eM++n"}],"lwLqBl":[function(require,module,exports){
+},{"underscore":"9eM++n"}],"vectorizer":[function(require,module,exports){
+module.exports=require('k3mQBb');
+},{}],"lwLqBl":[function(require,module,exports){
 (function (global){
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
@@ -23212,6 +23212,8 @@ module.exports=require('lwLqBl');
 }.call(this));
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],"underscore":[function(require,module,exports){
+module.exports=require('9eM++n');
 },{}],"9eM++n":[function(require,module,exports){
 (function (global){
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
@@ -24599,8 +24601,6 @@ module.exports=require('lwLqBl');
 }).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],"underscore":[function(require,module,exports){
-module.exports=require('9eM++n');
 },{}],26:[function(require,module,exports){
 var geometry    = require('joint/src/geometry');
 var graph       = require('joint/src/joint.dia.graph');

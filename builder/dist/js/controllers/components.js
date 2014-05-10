@@ -14,7 +14,9 @@ angular.module('gaudiBuilder').controller('componentsCtrl', function ($scope, co
     });
 });
 
-},{"directives/draggable":10,"services/componentFetcher":11}],"BU4qJ2":[function(require,module,exports){
+},{"directives/draggable":10,"services/componentFetcher":15}],"jquery.sortElements":[function(require,module,exports){
+module.exports=require('BU4qJ2');
+},{}],"BU4qJ2":[function(require,module,exports){
 (function (global){
 (function browserifyShim(module, define) {
 
@@ -101,11 +103,7 @@ jQuery.fn.sortElements = (function(){
 }).call(global, module, undefined);
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"jquery":"lwLqBl"}],"jquery.sortElements":[function(require,module,exports){
-module.exports=require('BU4qJ2');
-},{}],"vectorizer":[function(require,module,exports){
-module.exports=require('k3mQBb');
-},{}],"k3mQBb":[function(require,module,exports){
+},{"jquery":"lwLqBl"}],"k3mQBb":[function(require,module,exports){
 (function (global){
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 
@@ -755,7 +753,9 @@ module.exports=require('k3mQBb');
 }).call(global, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"underscore":"9eM++n"}],"lwLqBl":[function(require,module,exports){
+},{"underscore":"9eM++n"}],"vectorizer":[function(require,module,exports){
+module.exports=require('k3mQBb');
+},{}],"lwLqBl":[function(require,module,exports){
 (function (global){
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
 (function browserifyShim(module, exports, define, browserify_shim__define__module__export__) {
@@ -11361,7 +11361,258 @@ angular.module('gaudiBuilder').directive('draggable', function () {
 });
 
 },{}],11:[function(require,module,exports){
+/*global module*/
+
+var Component = function (attributes) {
+    'use strict';
+
+    var self = this;
+
+    for (var name in attributes) {
+        if (attributes.hasOwnProperty(name)) {
+            this[name] = attributes[name];
+        }
+    }
+
+    this.custom = {};
+    this.links = [];
+
+    // Set default values for common & custom fields
+    angular.forEach(this.fields, function(field, fieldName) {
+        self[fieldName] = field.default || '';
+    });
+
+    angular.forEach(this.customFields, function(customField, customFieldName) {
+        self.custom[customFieldName] = customField.default || 'coin';
+    });
+};
+
+Component.prototype.onCreateLink = function (target) {
+    'use strict';
+
+    if ($.inArray(target, this.links) < 0) {
+        this.links.push(target.name);
+    }
+};
+
+Component.prototype.onRemoveLink = function (oldTarget) {
+    'use strict';
+
+    var position;
+
+    if (oldTarget !== undefined && (position = $.inArray(oldTarget.name, this.links)) >= 0) {
+        this.links.splice(position, 1);
+    }
+};
+
+/**
+ * Parse values like "80: 80, 8080: 8080" to [{80: 80}, {8080: 80}]
+ *
+ * @param {String} map
+ * @return {Array}
+ */
+Component.prototype.parseMapValue = function (map) {
+    var results = {},
+        rawValues = map.split(','),
+        key,
+        value,
+        mapDetails;
+
+    angular.forEach(rawValues, function (rawValue) {
+        mapDetails = rawValue.split(':');
+
+        key = mapDetails[0].trim();
+        value = mapDetails[1].trim();
+
+        if (/^\d+$/.test(value)) {
+            value = parseInt(value, 10);
+        }
+
+        if (/^\d+$/.test(key)) {
+            key = parseInt(key, 10);
+        }
+
+        results[key] = value;
+    });
+
+    return results;
+};
+
+Component.prototype.getFormattedValue = function(field, value) {
+    // Check if the value is a map
+    if (field.multiple === true && typeof value === 'string' && value !== '') {
+        value = this.parseMapValue(value);
+    }
+
+    // Check if the value is an array
+    if (field.array === true && typeof value === 'string' && value !== '') {
+        value = value.split(/,\s*/);
+    }
+
+    return value;
+};
+
+Component.prototype.getOutputFields = function() {
+    var self = this,
+        results = {
+            type: this.type,
+            custom: {}
+        };
+
+    angular.forEach(this.fields, function(field, fieldName) {
+        results[fieldName] = self.getFormattedValue(field, self[fieldName]);
+    });
+
+    angular.forEach(this.customFields, function(customField, customFieldName) {
+        results.custom[customFieldName] = self.getFormattedValue(customField, self.custom[customFieldName]);
+    });
+
+    return results;
+};
+
+module.exports = Component;
+
+},{}],12:[function(require,module,exports){
+/*global require*/
+
+var Component = require('models/components/component');
+
+var Database = function () {
+    'use strict';
+
+    this.__proto__.__proto__.constructor.apply(this, arguments);
+
+    this.custom.repl = null;
+    this.custom.master = null;
+};
+
+Database.prototype.onCreateLink = function (target) {
+    'use strict';
+
+    Component.prototype.onCreateLink.apply(this, arguments);
+
+    // Link to the same type of component: create master/slave relationship
+    if(target.type === this.type) {
+        if (this.custom.repl === null) {
+            this.custom.repl = 'master';
+        }
+
+        // Update the slave to set the master
+        if (target.custom.repl === null) {
+            target.custom.repl = 'slave';
+            target.custom.master = this.name;
+        }
+    }
+};
+
+Database.prototype.onRemoveLink = function (oldTarget) {
+    'use strict';
+
+    Component.prototype.onRemoveLink.apply(this, arguments);
+
+    // Remove the master/slave relationship if the target has the same type
+    if(oldTarget.type === this.type) {
+        if (this.custom.repl === 'master') {
+            this.custom.repl = null;
+        }
+
+        // Update the slave to remove the master
+        if (oldTarget.custom.repl === 'slave') {
+            oldTarget.custom.repl = null;
+            oldTarget.custom.master = null;
+        }
+    }
+};
+
+Database.prototype.__proto__ = Component.prototype;
+
+module.exports = Database;
+
+},{"models/components/component":11}],13:[function(require,module,exports){
+/*global require*/
+
+var Component = require('models/components/component');
+
+var HttpServer = function (attributes) {
+    'use strict';
+
+    Component.prototype.constructor.apply(this, arguments);
+    this.custom.fastCgi = null;
+};
+
+HttpServer.prototype.onCreateLink = function (target) {
+    'use strict';
+
+    // Link to a fast-cgi app: set the fastCgi attribute
+    if (target.name === 'php-fpm' || target.name === 'hhvm') {
+        this.custom.fastCgi = target.name;
+    }
+};
+
+HttpServer.prototype.onRemoveLink = function (oldTarget) {
+    'use strict';
+
+    // Unlink a fast-cgi app: remove the fastCgi attribute
+    if (oldTarget.name === 'php-fpm' || oldTarget.name === 'hhvm') {
+        this.custom.fastCgi = oldTarget.name;
+    }
+};
+
+HttpServer.prototype.__proto__ = Component.prototype;
+
+module.exports = HttpServer;
+
+},{"models/components/component":11}],14:[function(require,module,exports){
+/*global require*/
+
+var HttpServer = require('models/components/httpServer');
+
+var LoadBalancer = function () {
+    'use strict';
+
+    this.__proto__.__proto__.constructor.apply(this, arguments);
+
+    this.custom.backends = [];
+};
+
+LoadBalancer.prototype.onCreateLink = function (target) {
+    'use strict';
+
+    this.__proto__.__proto__.onCreateLink.apply(this, arguments);
+
+    // Link to a httpServer : set load balancing
+    if(target.class === 'HttpServer') {
+        this.custom.backends.push(target.name);
+    }
+};
+
+LoadBalancer.prototype.onRemoveLink = function (oldTarget) {
+    'use strict';
+
+    this.__proto__.__proto__.onRemoveLink.apply(this, arguments);
+
+    // Unlink a httpServer : remove load balancing
+    if(oldTarget.class === 'HttpServer') {
+        var pos = this.custom.backends.indexOf(oldTarget.name);
+        if (pos > -1) {
+            this.custom.backends.slice(pos, 1);
+        }
+    }
+};
+
+LoadBalancer.prototype.__proto__ = HttpServer.prototype;
+
+module.exports = LoadBalancer;
+
+},{"models/components/httpServer":13}],15:[function(require,module,exports){
 /*global require,angular*/
+
+var classes = {
+    Component: require('models/components/component'),
+    Database: require('models/components/database'),
+    HttpServer: require('models/components/httpServer'),
+    LoadBalancer: require('models/components/loadBalancer')
+};
 
 angular.module('gaudiBuilder').service('componentFetcher', function ($q, $http) {
     'use strict';
@@ -11374,15 +11625,23 @@ angular.module('gaudiBuilder').service('componentFetcher', function ($q, $http) 
      * @returns {promise}
      */
     function getAllComponents() {
-        var deferred = $q.defer();
+        var deferred = $q.defer(),
+            component;
 
         if (availableComponents) {
             deferred.resolve(availableComponents);
         } else {
-            $http.get('data/components.json').success(function (data) {
-                availableComponents = data;
+            $http.get('data/components.json').success(function (rawComponents) {
+                availableComponents = {};
 
-                deferred.resolve(data);
+                angular.forEach(rawComponents, function (rawComponent, type) {
+                    rawComponent.type = type;
+                    component = new classes[rawComponent.class](rawComponent);
+
+                    availableComponents[type] = component;
+                });
+
+                deferred.resolve(availableComponents);
             });
         }
 
@@ -11394,4 +11653,4 @@ angular.module('gaudiBuilder').service('componentFetcher', function ($q, $http) 
     };
 });
 
-},{}]},{},[1])
+},{"models/components/component":11,"models/components/database":12,"models/components/httpServer":13,"models/components/loadBalancer":14}]},{},[1])
