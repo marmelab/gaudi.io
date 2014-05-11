@@ -13,7 +13,7 @@ HttpServer.prototype.onCreateLink = function (target) {
     'use strict';
 
     // Link to a fast-cgi app: set the fastCgi attribute
-    if (target.name === 'php-fpm' || target.name === 'hhvm') {
+    if (target.type === 'php-fpm' || target.type === 'hhvm') {
         this.custom.fastCgi = target.name;
     }
 };
@@ -23,7 +23,7 @@ HttpServer.prototype.onRemoveLink = function (oldTarget) {
 
     // Unlink a fast-cgi app: remove the fastCgi attribute
     if (oldTarget.name === 'php-fpm' || oldTarget.name === 'hhvm') {
-        this.custom.fastCgi = oldTarget.name;
+        this.custom.fastCgi = null;
     }
 };
 

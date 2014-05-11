@@ -13,10 +13,10 @@ var LoadBalancer = function () {
 LoadBalancer.prototype.onCreateLink = function (target) {
     'use strict';
 
-    this.__proto__.__proto__.onCreateLink.apply(this, arguments);
+    HttpServer.prototype.onCreateLink.apply(this, arguments);
 
     // Link to a httpServer : set load balancing
-    if(target.class === 'HttpServer') {
+    if(target.class === 'HttpServer' && $.inArray(target.name, this.custom.backends) < 0) {
         this.custom.backends.push(target.name);
     }
 };
@@ -24,7 +24,7 @@ LoadBalancer.prototype.onCreateLink = function (target) {
 LoadBalancer.prototype.onRemoveLink = function (oldTarget) {
     'use strict';
 
-    this.__proto__.__proto__.onRemoveLink.apply(this, arguments);
+    HttpServer.prototype.onRemoveLink.apply(this, arguments);
 
     // Unlink a httpServer : remove load balancing
     if(oldTarget.class === 'HttpServer') {

@@ -30,6 +30,7 @@
             "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}
         },
         "customFields": {
+            "fastCgi": {"label": "Forward fast CGI to :", "type": "link"},
             "backends": {"label": "Backends :", "type": "links"},
             "documentRoot": {"label": "DocumentRoot :", "type": "text", "default": "/var/www"}
         }
