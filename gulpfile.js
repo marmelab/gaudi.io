@@ -9,9 +9,16 @@ var uglify      = require('gulp-uglify');
 var stringify   = require('stringify');
 var lr          = require('tiny-lr');
 var server      = lr();
+var karma       = require('gulp-karma');
+var jasmine     = require('gulp-jasmine');
+
+var testFiles   = [
+    'builder/tests/unit/services/*.js',
+    'builder/dist/app.js'
+];
 
 function buildScripts() {
-    "use strict";
+    'use strict';
 
     gulp.src(['builder/src/js/**/*.js'])
         .pipe(browserify({
@@ -49,7 +56,7 @@ function buildScripts() {
 }
 
 function buildStyles() {
-    "use strict";
+    'use strict';
 
     gulp.src(['builder/src/css/**/*.css'])
         .pipe(gulp.dest('builder/dist/css'))
@@ -57,7 +64,7 @@ function buildStyles() {
 }
 
 function createLiveReloadServer() {
-    "use strict";
+    'use strict';
 
     server.listen(35729, function (err) {
         if (err) {
@@ -66,8 +73,26 @@ function createLiveReloadServer() {
     });
 }
 
+gulp.task('test', function () {
+    'use strict';
+
+    // Be sure to return the stream
+    return gulp.src(testFiles)
+        .pipe(karma({
+            configFile: 'builder/config/karma.conf.js',
+            action: 'run'
+        }))
+        //.pipe(jasmine())
+        .on('error', function (err) {
+            // Make sure failed tests cause gulp to exit non-zero
+            throw err;
+        });
+});
+
+
+
 gulp.task('default', function () {
-    "use strict";
+    'use strict';
 
     buildScripts();
     buildStyles();
