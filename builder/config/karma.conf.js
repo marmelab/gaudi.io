@@ -8,8 +8,10 @@ module.exports = function (config) {
         frameworks: ['jasmine'],
 
         files: [
-            {pattern: 'dist/app.js'},
-            {pattern: 'tests/lib/angular/angular-mocks.js', included: false}
+            {pattern: 'dist/js/app.js'},
+            {pattern: 'tests/lib/angular/angular-mocks.js'},
+            {pattern: 'tests/main.js'},
+            {pattern: 'tests/unit/**/*.js'}
         ],
 
         autoWatch: true,

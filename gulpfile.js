@@ -12,11 +12,6 @@ var server      = lr();
 var karma       = require('gulp-karma');
 var jasmine     = require('gulp-jasmine');
 
-var testFiles   = [
-    'builder/tests/unit/services/*.js',
-    'builder/dist/app.js'
-];
-
 function buildScripts() {
     'use strict';
 
@@ -77,7 +72,8 @@ gulp.task('test', function () {
     'use strict';
 
     // Be sure to return the stream
-    return gulp.src(testFiles)
+    // @see: https://github.com/lazd/gulp-karma/issues/9
+    return gulp.src('./idontexist')
         .pipe(karma({
             configFile: 'builder/config/karma.conf.js',
             action: 'run'
