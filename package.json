@@ -3,11 +3,13 @@
   "version": "0.0.1",
   "description": "gaudi's presentation page",
   "repository": "https://github.com/marmelab/gaudi.io",
+  "homepage": "http://gaudi.io",
   "author": "Emmanuel QUENTIN <emmanuel@marmelab.com>",
   "license": "MIT",
   "private": true,
   "scripts": {
-    "install": "napa"
+    "install": "napa",
+    "test": "gulp test"
   },
   "napa": {
     "angular": "angular/bower-angular",
@@ -34,6 +36,10 @@
     "gulp-concat": "~2.2.0",
     "gulp-styl": "~0.2.1",
     "tiny-lr": "~0.0.7",
-    "gulp-ngmin": "~0.3.0"
+    "gulp-ngmin": "~0.3.0",
+    "karma": "~0.12.16",
+    "gulp-karma": "0.0.4",
+    "gulp-mocha": "~0.4.1",
+    "gulp-jasmine": "~0.2.0"
   }
 }

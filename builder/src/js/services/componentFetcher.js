@@ -35,7 +35,7 @@ angular.module('gaudiBuilder').service('componentFetcher', function ($q, $http) 
                 });
 
                 deferred.resolve(availableComponents);
-            });
+            }).error(deferred.reject);
         }
 
         return deferred.promise;
