@@ -3,11 +3,13 @@
   "version": "0.0.1",
   "description": "gaudi's presentation page",
   "repository": "https://github.com/marmelab/gaudi.io",
+  "homepage": "http://gaudi.io",
   "author": "Emmanuel QUENTIN <emmanuel@marmelab.com>",
   "license": "MIT",
   "private": true,
   "scripts": {
-    "install": "napa"
+    "install": "napa",
+    "test": "gulp test"
   },
   "napa": {
     "angular": "angular/bower-angular",

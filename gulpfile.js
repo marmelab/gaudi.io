@@ -71,6 +71,8 @@ function createLiveReloadServer() {
 gulp.task('test', function () {
     'use strict';
 
+    buildScripts();
+
     // Be sure to return the stream
     // @see: https://github.com/lazd/gulp-karma/issues/9
     return gulp.src('./idontexist')
@@ -78,7 +80,6 @@ gulp.task('test', function () {
             configFile: 'builder/config/karma.conf.js',
             action: 'run'
         }))
-        //.pipe(jasmine())
         .on('error', function (err) {
             // Make sure failed tests cause gulp to exit non-zero
             throw err;

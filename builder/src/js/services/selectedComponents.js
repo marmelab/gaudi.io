@@ -1,9 +1,9 @@
 /*global angular, require*/
 
-angular.module('gaudiBuilder').factory('selectedComponents', function () {
+angular.module('gaudiBuilder').service('selectedComponents', function () {
     'use strict';
 
-    var components = {};
+    this.components = {};
 
     /**
      * Return a name available for a component
@@ -11,9 +11,9 @@ angular.module('gaudiBuilder').factory('selectedComponents', function () {
      * @param {String} type
      * @returns {String}
      */
-    function getElementName(type) {
+    this.getElementName = function (type) {
         type = type.replace('-', '_');
-        if (components[type] === undefined) {
+        if (this.components[type] === undefined) {
             return type;
         }
 
@@ -27,11 +27,6 @@ angular.module('gaudiBuilder').factory('selectedComponents', function () {
             newName = type + '_' + 1;
         }
 
-        return getElementName(newName);
-    }
-
-    return {
-        components: components,
-        getElementName: getElementName
+        return this.getElementName(newName);
     };
 });
