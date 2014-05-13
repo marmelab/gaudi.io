@@ -1,14 +1,16 @@
+<input type="text" class="search" ng-model="search.label" />
+<i class="glyphicon glyphicon-search"></i>
 <ul class="components list-group row">
-    <li ng-repeat="(type, component) in components" class="list-group-item component col-md-6 clearfix {{ type }}"
-        id="component-{{ $index }}" data-name="{{ type }}"  data-type="{{ component.type }}" data-logo="{{ component.logo }}" draggable="">
+    <li ng-repeat="component in components | filter:search" class="list-group-item component col-md-6 clearfix {{ type }}"
+        id="component-{{ $index }}" data-type="{{ component.type }}" data-binary="{{ component.binary }}" data-logo="{{ component.logo }}" draggable="">
 
         <div class="element">
             <img ng-src="{{ component.logo }}" alt="{{ component.name }}" />
-            <span class="name">{{ component.name }}</span>
+            <span class="label">{{ component.label }}</span>
         </div>
     </li>
 
-    <li class="list-group-item component col-md-6 fixed">
+    <li class="list-group-item component col-md-6 fixed" ng-show="search.label === ''">
         <div class="element">
             And more to come ...
         </div>

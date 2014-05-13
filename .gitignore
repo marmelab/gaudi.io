@@ -1,1 +1,3 @@
 _site/
+builder/dist/js
+!builder/dist/js/app.js

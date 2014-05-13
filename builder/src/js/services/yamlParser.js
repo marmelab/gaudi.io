@@ -12,39 +12,6 @@ angular.module('gaudiBuilder').service('yamlParser', function () {
     'use strict';
 
     /**
-     * Parse values like "80: 80, 8080: 8080" to [{80: 80}, {8080: 80}]
-     *
-     * @param {String} map
-     * @return {Array}
-     */
-    function parseMapValue(map) {
-        var results = {},
-            rawValues = map.split(','),
-            key,
-            value,
-            mapDetails;
-
-        angular.forEach(rawValues, function (rawValue) {
-            mapDetails = rawValue.split(':');
-
-            key = mapDetails[0].trim();
-            value = mapDetails[1].trim();
-
-            if (/^\d+$/.test(value)) {
-                value = parseInt(value, 10);
-            }
-
-            if (/^\d+$/.test(key)) {
-                key = parseInt(key, 10);
-            }
-
-            results[key] = value;
-        });
-
-        return results;
-    }
-
-    /**
      * Remove empty objects recursively from another object
      *
      * @param {Object} object
@@ -110,7 +77,6 @@ angular.module('gaudiBuilder').service('yamlParser', function () {
     }
 
     return {
-        parseMapValue: parseMapValue,
         cleanEmptyObjects: cleanEmptyObjects,
         cleanResult: cleanResult,
         dump: dump

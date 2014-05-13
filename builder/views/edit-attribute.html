@@ -1,7 +1,7 @@
 <label for="{{ name }}" class="col-sm-3 control-label">{{ field.label }}</label>
 
 <div class="col-sm-9" ng-switch="field.type">
-    <input id="{{ name }}" class="form-control" ng-switch-when="text" type="text" ng-model="values[name]" ng-init="values[name] = values[name] || field.default" />
+    <input id="{{ name }}" class="form-control" ng-switch-when="text" type="text" ng-model="values[name]" />
 
     <select id="{{ name }}" class="form-control" ng-switch-when="link" ng-model="values[name]" ng-options="option as option for option in componentNames"></select>
 
