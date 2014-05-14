@@ -15,12 +15,13 @@ module.exports = function (config) {
 
         autoWatch: true,
 
-        browsers: ['Chrome'],
+        browsers: ['PhantomJS'],
         singleRun: false,
         colors: true,
 
         plugins: [
             'karma-chrome-launcher',
+            'karma-phantomjs-launcher',
             'karma-jasmine'
         ],
 

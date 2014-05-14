@@ -15,7 +15,8 @@
     "angular": "angular/bower-angular",
     "angular-route": "angular/bower-angular-route",
     "angular-bootstrap": "angular-ui/bootstrap",
-    "joint": "DavidDurman/joint"
+    "joint": "DavidDurman/joint",
+    "jquery.fn": "padolsey/jquery.fn"
   },
   "dependencies": {
     "underscore": "~1.6.0",
@@ -40,6 +41,9 @@
     "karma": "~0.12.16",
     "gulp-karma": "0.0.4",
     "gulp-mocha": "~0.4.1",
-    "gulp-jasmine": "~0.2.0"
+    "gulp-jasmine": "~0.2.0",
+    "karma-jasmine": "~0.1.5",
+    "karma-chrome-launcher": "~0.1.3",
+    "karma-phantomjs-launcher": "~0.1.4"
   }
 }
