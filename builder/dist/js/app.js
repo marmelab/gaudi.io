@@ -48899,23 +48899,24 @@ var Component = function (attributes) {
 
     var self = this;
 
+    this.custom = {};
+    this.links = [];
+
+    // Set default values for common & custom fields
+    angular.forEach(attributes.fields, function(field, fieldName) {
+        self[fieldName] = self[fieldName] || field.default || '';
+    });
+
+    angular.forEach(attributes.customFields, function(customField, customFieldName) {
+        self.custom[customFieldName] = customField.default || '';
+    });
+
+    // Copy fields values
     for (var name in attributes) {
         if (attributes.hasOwnProperty(name)) {
             this[name] = attributes[name];
         }
     }
-
-    this.custom = {};
-    this.links = [];
-
-    // Set default values for common & custom fields
-    angular.forEach(this.fields, function(field, fieldName) {
-        self[fieldName] = field.default || '';
-    });
-
-    angular.forEach(this.customFields, function(customField, customFieldName) {
-        self.custom[customFieldName] = customField.default || '';
-    });
 };
 
 Component.prototype.onCreateLink = function (target) {
@@ -48950,6 +48951,10 @@ Component.prototype.parseMapValue = function (map) {
         mapDetails;
 
     angular.forEach(rawValues, function (rawValue) {
+        if (rawValue === '') {
+            return;
+        }
+        
         mapDetails = rawValue.split(':');
 
         key = mapDetails[0].trim();

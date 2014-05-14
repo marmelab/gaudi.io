@@ -91,11 +91,13 @@ describe('Model: component', function () {
         expect(apache.getFormattedValue({multiple: true}, '80: 80, 3306:3307')).toEqual({80: 80, 3306: 3307});
     });
 
-    iit('should return all fields', function () {
+    it('should return all fields', function () {
         var apache = new componentFactory.Component({type: 'apache'});
         var nginx = new componentFactory.Component({type: 'nginx', port: '80: 80', fields: {port: {multiple: true}}});
+        var php = new componentFactory.Component({type: 'php', modules: 'gd, intl', fields: {modules: {array: true}}});
 
         expect(apache.getOutputFields()).toEqual({type: 'apache', custom: {}});
-        expect(nginx.getOutputFields()).toEqual({type: 'nginx', port: {80: 80}, custom: {}});
+        expect(nginx.getOutputFields()).toEqual({type: 'nginx', custom: {}, port: {80: 80}});
+        expect(php.getOutputFields()).toEqual({type: 'php', custom: {}, modules: ['gd', 'intl']});
     });
 });
