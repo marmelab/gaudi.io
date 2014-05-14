@@ -1,13 +1,8 @@
 /*global require,angular*/
 
-var classes = {
-    Component: require('models/components/component'),
-    Database: require('models/components/database'),
-    HttpServer: require('models/components/httpServer'),
-    LoadBalancer: require('models/components/loadBalancer')
-};
+var yaml = require('services/componentFactory');
 
-angular.module('gaudiBuilder').service('componentFetcher', function ($q, $http) {
+angular.module('gaudiBuilder').service('componentFetcher', function ($q, $http, componentFactory) {
     'use strict';
 
     var availableComponents = null;
@@ -29,7 +24,7 @@ angular.module('gaudiBuilder').service('componentFetcher', function ($q, $http) 
 
                 angular.forEach(rawComponents, function (rawComponent, type) {
                     rawComponent.type = type;
-                    component = new classes[rawComponent.class](rawComponent);
+                    component = new componentFactory[rawComponent.class](rawComponent);
 
                     availableComponents[type] = component;
                 });

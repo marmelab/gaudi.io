@@ -10,7 +10,6 @@ module.exports = function (config) {
         files: [
             {pattern: 'dist/js/app.js'},
             {pattern: 'tests/lib/angular/angular-mocks.js'},
-            {pattern: 'tests/main.js'},
             {pattern: 'tests/unit/**/*.js'}
         ],
 

@@ -44,8 +44,8 @@ function buildScripts() {
                 }
             }
         }))
-        .pipe(ngmin())
-        .pipe(uglify({mangle: false}))
+        //.pipe(ngmin())
+        //.pipe(uglify({mangle: false}))
         .pipe(gulp.dest('builder/dist/js'))
         .pipe(refresh(server));
 }

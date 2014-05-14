@@ -20,14 +20,14 @@ var Component = function (attributes) {
     });
 
     angular.forEach(this.customFields, function(customField, customFieldName) {
-        self.custom[customFieldName] = customField.default || 'coin';
+        self.custom[customFieldName] = customField.default || '';
     });
 };
 
 Component.prototype.onCreateLink = function (target) {
     'use strict';
 
-    if ($.inArray(target, this.links) < 0) {
+    if (this.links.indexOf(target.name) === -1) {
         this.links.push(target.name);
     }
 };
@@ -37,13 +37,13 @@ Component.prototype.onRemoveLink = function (oldTarget) {
 
     var position;
 
-    if (oldTarget !== undefined && (position = $.inArray(oldTarget.name, this.links)) >= 0) {
+    if (oldTarget !== undefined && (position = this.links.indexOf(oldTarget.name)) >= 0) {
         this.links.splice(position, 1);
     }
 };
 
 /**
- * Parse values like "80: 80, 8080: 8080" to [{80: 80}, {8080: 80}]
+ * Parse values like "80: 80, 8080: 8080" to {80: 80}, {8080: 80}
  *
  * @param {String} map
  * @return {Array}
