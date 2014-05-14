@@ -11,10 +11,10 @@ var Database = function () {
     this.custom.master = null;
 };
 
-Database.prototype.onCreateLink = function (target) {
+Database.prototype.createLink = function (target) {
     'use strict';
 
-    Component.prototype.onCreateLink.apply(this, arguments);
+    Component.prototype.createLink.apply(this, arguments);
 
     // Link to the same type of component: create master/slave relationship
     if(target.type === this.type) {
@@ -23,17 +23,17 @@ Database.prototype.onCreateLink = function (target) {
         }
 
         // Update the slave to set the master
-        if (target.custom.repl === null) {
+        if (!target.custom.repl) {
             target.custom.repl = 'slave';
             target.custom.master = this.name;
         }
     }
 };
 
-Database.prototype.onRemoveLink = function (oldTarget) {
+Database.prototype.removeLink = function (oldTarget) {
     'use strict';
 
-    Component.prototype.onRemoveLink.apply(this, arguments);
+    Component.prototype.removeLink.apply(this, arguments);
 
     // Remove the master/slave relationship if the target has the same type
     if(oldTarget.type === this.type) {

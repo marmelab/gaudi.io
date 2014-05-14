@@ -25,7 +25,7 @@ var Component = function (attributes) {
     }
 };
 
-Component.prototype.onCreateLink = function (target) {
+Component.prototype.createLink = function (target) {
     'use strict';
 
     if (this.links.indexOf(target.name) === -1) {
@@ -33,7 +33,7 @@ Component.prototype.onCreateLink = function (target) {
     }
 };
 
-Component.prototype.onRemoveLink = function (oldTarget) {
+Component.prototype.removeLink = function (oldTarget) {
     'use strict';
 
     var position;
@@ -60,7 +60,7 @@ Component.prototype.parseMapValue = function (map) {
         if (rawValue === '') {
             return;
         }
-        
+
         mapDetails = rawValue.split(':');
 
         key = mapDetails[0].trim();

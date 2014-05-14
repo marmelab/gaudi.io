@@ -20,7 +20,7 @@ describe('Model: component', function () {
         expect(component.valid).toBe(true);
     });
 
-    it('should create each fields with default values', function () {
+    it('should create each field with default values', function () {
         var component = new componentFactory.Component({label: 'hello', fields: {
             port: {default: '80'},
             apt_get: {type: 'choice'}
@@ -30,7 +30,7 @@ describe('Model: component', function () {
         expect(component.apt_get).toBe('');
     });
 
-    it('should create each custom fields with default values', function () {
+    it('should create each custom field with default values', function () {
         var component = new componentFactory.Component({label: 'hello', customFields: {
             documentRoot: {default: '/var/www'},
             module: {type: 'choice'}
@@ -44,7 +44,7 @@ describe('Model: component', function () {
         var apache = new componentFactory.Component({name: 'apache'});
         var php = new componentFactory.Component({name: 'php'});
 
-        apache.onCreateLink(php);
+        apache.createLink(php);
 
         expect(apache.links).toEqual(['php']);
     });
@@ -53,8 +53,8 @@ describe('Model: component', function () {
         var apache = new componentFactory.Component({name: 'apache'});
         var php = new componentFactory.Component({name: 'php'});
 
-        apache.onCreateLink(php);
-        apache.onCreateLink(php);
+        apache.createLink(php);
+        apache.createLink(php);
 
         expect(apache.links).toEqual(['php']);
     });
@@ -63,8 +63,8 @@ describe('Model: component', function () {
         var apache = new componentFactory.Component({name: 'apache'});
         var php = new componentFactory.Component({name: 'php'});
 
-        apache.onCreateLink(php);
-        apache.onRemoveLink(php);
+        apache.createLink(php);
+        apache.removeLink(php);
 
         expect(apache.links).toEqual([]);
     });

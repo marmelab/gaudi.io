@@ -27,24 +27,24 @@ angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal,
         allComponents = components;
     });
 
-    function onCreateLink(targetId) {
+    function createLink(targetId) {
         var sourceName = this.get('name'),
             targetName = graph.getCell(targetId).get('name'),
             source = $scope.components[sourceName],
             target = $scope.components[targetName];
 
-        source.onCreateLink(target);
+        source.createLink(target);
 
         $scope.$apply();
     }
 
-    function onRemoveLink(sourceId, targetId) {
+    function removeLink(sourceId, targetId) {
         var sourceName = graph.getCell(sourceId).get('name'),
             targetName = graph.getCell(targetId).get('name'),
             source = $scope.components[sourceName],
             target = $scope.components[targetName];
 
-        source.onRemoveLink(target);
+        source.removeLink(target);
 
         $scope.$apply();
     }
@@ -130,8 +130,8 @@ angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal,
         });
 
         graph.addCell(rect);
-        rect.on('createLink', onCreateLink);
-        rect.on('removeLink', onRemoveLink);
+        rect.on('createLink', createLink);
+        rect.on('removeLink', removeLink);
         rect.on('onOpenDetail', onOpenDetail);
         rect.on('onRemove', onRemove);
 
@@ -48919,7 +48919,7 @@ var Component = function (attributes) {
     }
 };
 
-Component.prototype.onCreateLink = function (target) {
+Component.prototype.createLink = function (target) {
     'use strict';
 
     if (this.links.indexOf(target.name) === -1) {
@@ -48927,7 +48927,7 @@ Component.prototype.onCreateLink = function (target) {
     }
 };
 
-Component.prototype.onRemoveLink = function (oldTarget) {
+Component.prototype.removeLink = function (oldTarget) {
     'use strict';
 
     var position;
@@ -48954,7 +48954,7 @@ Component.prototype.parseMapValue = function (map) {
         if (rawValue === '') {
             return;
         }
-        
+
         mapDetails = rawValue.split(':');
 
         key = mapDetails[0].trim();
@@ -49022,10 +49022,10 @@ var Database = function () {
     this.custom.master = null;
 };
 
-Database.prototype.onCreateLink = function (target) {
+Database.prototype.createLink = function (target) {
     'use strict';
 
-    Component.prototype.onCreateLink.apply(this, arguments);
+    Component.prototype.createLink.apply(this, arguments);
 
     // Link to the same type of component: create master/slave relationship
     if(target.type === this.type) {
@@ -49034,17 +49034,17 @@ Database.prototype.onCreateLink = function (target) {
         }
 
         // Update the slave to set the master
-        if (target.custom.repl === null) {
+        if (!target.custom.repl) {
             target.custom.repl = 'slave';
             target.custom.master = this.name;
         }
     }
 };
 
-Database.prototype.onRemoveLink = function (oldTarget) {
+Database.prototype.removeLink = function (oldTarget) {
     'use strict';
 
-    Component.prototype.onRemoveLink.apply(this, arguments);
+    Component.prototype.removeLink.apply(this, arguments);
 
     // Remove the master/slave relationship if the target has the same type
     if(oldTarget.type === this.type) {
@@ -49076,8 +49076,10 @@ var HttpServer = function (attributes) {
     this.custom.fastCgi = null;
 };
 
-HttpServer.prototype.onCreateLink = function (target) {
+HttpServer.prototype.createLink = function (target) {
     'use strict';
+
+    Component.prototype.createLink.apply(this, arguments);
 
     // Link to a fast-cgi app: set the fastCgi attribute
     if (target.type === 'php-fpm' || target.type === 'hhvm') {
@@ -49085,11 +49087,13 @@ HttpServer.prototype.onCreateLink = function (target) {
     }
 };
 
-HttpServer.prototype.onRemoveLink = function (oldTarget) {
+HttpServer.prototype.removeLink = function (oldTarget) {
     'use strict';
 
+    Component.prototype.removeLink.apply(this, arguments);
+
     // Unlink a fast-cgi app: remove the fastCgi attribute
-    if (oldTarget.name === 'php-fpm' || oldTarget.name === 'hhvm') {
+    if (oldTarget.type === 'php-fpm' || oldTarget.type === 'hhvm') {
         this.custom.fastCgi = null;
     }
 };
@@ -49111,27 +49115,27 @@ var LoadBalancer = function () {
     this.custom.backends = [];
 };
 
-LoadBalancer.prototype.onCreateLink = function (target) {
+LoadBalancer.prototype.createLink = function (target) {
     'use strict';
 
-    HttpServer.prototype.onCreateLink.apply(this, arguments);
+    HttpServer.prototype.createLink.apply(this, arguments);
 
     // Link to a httpServer : set load balancing
-    if(target.class === 'HttpServer' && $.inArray(target.name, this.custom.backends) < 0) {
+    if(target.class === 'HttpServer' && this.custom.backends.indexOf(target.name) === -1) {
         this.custom.backends.push(target.name);
     }
 };
 
-LoadBalancer.prototype.onRemoveLink = function (oldTarget) {
+LoadBalancer.prototype.removeLink = function (oldTarget) {
     'use strict';
 
-    HttpServer.prototype.onRemoveLink.apply(this, arguments);
+    HttpServer.prototype.removeLink.apply(this, arguments);
 
     // Unlink a httpServer : remove load balancing
     if(oldTarget.class === 'HttpServer') {
         var pos = this.custom.backends.indexOf(oldTarget.name);
         if (pos > -1) {
-            this.custom.backends.slice(pos, 1);
+            this.custom.backends.splice(pos, 1);
         }
     }
 };
