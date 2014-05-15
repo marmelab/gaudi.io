@@ -10,18 +10,18 @@ module.exports = function (config) {
         files: [
             {pattern: 'dist/js/app.js'},
             {pattern: 'tests/lib/angular/angular-mocks.js'},
-            {pattern: 'tests/main.js'},
             {pattern: 'tests/unit/**/*.js'}
         ],
 
         autoWatch: true,
 
-        browsers: ['Chrome'],
+        browsers: ['PhantomJS'],
         singleRun: false,
         colors: true,
 
         plugins: [
             'karma-chrome-launcher',
+            'karma-phantomjs-launcher',
             'karma-jasmine'
         ],
 

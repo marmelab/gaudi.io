@@ -32,7 +32,7 @@ describe('Service: yamlParser', function () {
         expect(yamlParser.cleanResult({hello: {a: '12', c: ''}})).toEqual({hello: {a: '12'}});
     });
 
-    iit('should dump yaml', function () {
+    it('should dump yaml', function () {
         expect(yamlParser.dump({})).toEqual('');
         expect(yamlParser.dump({hello: true}).trim()).toEqual('hello: true');
     });

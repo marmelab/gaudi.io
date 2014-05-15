@@ -26,24 +26,24 @@ angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal,
         allComponents = components;
     });
 
-    function onCreateLink(targetId) {
+    function createLink(targetId) {
         var sourceName = this.get('name'),
             targetName = graph.getCell(targetId).get('name'),
             source = $scope.components[sourceName],
             target = $scope.components[targetName];
 
-        source.onCreateLink(target);
+        source.createLink(target);
 
         $scope.$apply();
     }
 
-    function onRemoveLink(sourceId, targetId) {
+    function removeLink(sourceId, targetId) {
         var sourceName = graph.getCell(sourceId).get('name'),
             targetName = graph.getCell(targetId).get('name'),
             source = $scope.components[sourceName],
             target = $scope.components[targetName];
 
-        source.onRemoveLink(target);
+        source.removeLink(target);
 
         $scope.$apply();
     }
@@ -129,8 +129,8 @@ angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal,
         });
 
         graph.addCell(rect);
-        rect.on('createLink', onCreateLink);
-        rect.on('removeLink', onRemoveLink);
+        rect.on('createLink', createLink);
+        rect.on('removeLink', removeLink);
         rect.on('onOpenDetail', onOpenDetail);
         rect.on('onRemove', onRemove);
 

@@ -5,45 +5,46 @@ var Component = function (attributes) {
 
     var self = this;
 
+    this.custom = {};
+    this.links = [];
+
+    // Set default values for common & custom fields
+    angular.forEach(attributes.fields, function(field, fieldName) {
+        self[fieldName] = self[fieldName] || field.default || '';
+    });
+
+    angular.forEach(attributes.customFields, function(customField, customFieldName) {
+        self.custom[customFieldName] = customField.default || '';
+    });
+
+    // Copy fields values
     for (var name in attributes) {
         if (attributes.hasOwnProperty(name)) {
             this[name] = attributes[name];
         }
     }
-
-    this.custom = {};
-    this.links = [];
-
-    // Set default values for common & custom fields
-    angular.forEach(this.fields, function(field, fieldName) {
-        self[fieldName] = field.default || '';
-    });
-
-    angular.forEach(this.customFields, function(customField, customFieldName) {
-        self.custom[customFieldName] = customField.default || 'coin';
-    });
 };
 
-Component.prototype.onCreateLink = function (target) {
+Component.prototype.createLink = function (target) {
     'use strict';
 
-    if ($.inArray(target, this.links) < 0) {
+    if (this.links.indexOf(target.name) === -1) {
         this.links.push(target.name);
     }
 };
 
-Component.prototype.onRemoveLink = function (oldTarget) {
+Component.prototype.removeLink = function (oldTarget) {
     'use strict';
 
     var position;
 
-    if (oldTarget !== undefined && (position = $.inArray(oldTarget.name, this.links)) >= 0) {
+    if (oldTarget !== undefined && (position = this.links.indexOf(oldTarget.name)) >= 0) {
         this.links.splice(position, 1);
     }
 };
 
 /**
- * Parse values like "80: 80, 8080: 8080" to [{80: 80}, {8080: 80}]
+ * Parse values like "80: 80, 8080: 8080" to {80: 80}, {8080: 80}
  *
  * @param {String} map
  * @return {Array}
@@ -56,6 +57,10 @@ Component.prototype.parseMapValue = function (map) {
         mapDetails;
 
     angular.forEach(rawValues, function (rawValue) {
+        if (rawValue === '') {
+            return;
+        }
+
         mapDetails = rawValue.split(':');
 
         key = mapDetails[0].trim();

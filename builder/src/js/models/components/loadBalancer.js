@@ -10,27 +10,27 @@ var LoadBalancer = function () {
     this.custom.backends = [];
 };
 
-LoadBalancer.prototype.onCreateLink = function (target) {
+LoadBalancer.prototype.createLink = function (target) {
     'use strict';
 
-    HttpServer.prototype.onCreateLink.apply(this, arguments);
+    HttpServer.prototype.createLink.apply(this, arguments);
 
     // Link to a httpServer : set load balancing
-    if(target.class === 'HttpServer' && $.inArray(target.name, this.custom.backends) < 0) {
+    if(target.class === 'HttpServer' && this.custom.backends.indexOf(target.name) === -1) {
         this.custom.backends.push(target.name);
     }
 };
 
-LoadBalancer.prototype.onRemoveLink = function (oldTarget) {
+LoadBalancer.prototype.removeLink = function (oldTarget) {
     'use strict';
 
-    HttpServer.prototype.onRemoveLink.apply(this, arguments);
+    HttpServer.prototype.removeLink.apply(this, arguments);
 
     // Unlink a httpServer : remove load balancing
     if(oldTarget.class === 'HttpServer') {
         var pos = this.custom.backends.indexOf(oldTarget.name);
         if (pos > -1) {
-            this.custom.backends.slice(pos, 1);
+            this.custom.backends.splice(pos, 1);
         }
     }
 };

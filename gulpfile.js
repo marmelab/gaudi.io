@@ -25,7 +25,7 @@ function buildScripts() {
                     exports: '$'
                 },
                 'jquery.sortElements': {
-                    path: 'node_modules/joint/lib/jquery.sortElements.js',
+                    path: 'node_modules/jquery.fn/sortElements/jquery.sortElements.js',
                     exports: null,
                     depends: {
                         jquery: '$'
