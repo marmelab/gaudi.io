@@ -98,6 +98,7 @@ Component.prototype.getOutputFields = function() {
     var self = this,
         results = {
             type: this.type,
+            links: this.links,
             custom: {}
         };
 

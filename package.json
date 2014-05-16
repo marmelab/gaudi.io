@@ -15,7 +15,7 @@
     "angular": "angular/bower-angular",
     "angular-route": "angular/bower-angular-route",
     "angular-bootstrap": "angular-ui/bootstrap",
-    "joint": "DavidDurman/joint",
+    "joint": "manuquentin/joint",
     "jquery.fn": "padolsey/jquery.fn"
   },
   "dependencies": {
