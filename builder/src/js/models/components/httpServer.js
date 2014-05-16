@@ -23,11 +23,23 @@ HttpServer.prototype.createLink = function (target) {
 HttpServer.prototype.removeLink = function (oldTarget) {
     'use strict';
 
-    Component.prototype.removeLink.apply(this, arguments);
+    var result = Component.prototype.removeLink.apply(this, arguments);
 
     // Unlink a fast-cgi app: remove the fastCgi attribute
     if (oldTarget.type === 'php-fpm' || oldTarget.type === 'hhvm') {
         this.custom.fastCgi = null;
+    }
+
+    return result;
+};
+
+HttpServer.prototype.changeLinkedComponentName = function (name, oldName) {
+    'use strict';
+
+    Component.prototype.changeLinkedComponentName.apply(this, arguments);
+
+    if (this.custom.fastCgi === oldName) {
+        this.custom.fastCgi = name;
     }
 };
 

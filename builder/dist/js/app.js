@@ -84,16 +84,13 @@ angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal,
         });
 
         editModal.result.then(function (formData) {
+            // Detect component name changes
             if (formData.name !== componentName) {
                 delete $scope.components[componentName];
 
                 // Update links name of other components
-                angular.forEach($scope.components, function (otherName, otherComponent) {
-                    angular.forEach(otherComponent.links, function (linkIdx, link) {
-                        if (otherComponent.links[linkIdx] === componentName) {
-                            otherComponent.links[linkIdx] = formData.name;
-                        }
-                    });
+                angular.forEach($scope.components, function (otherComponent) {
+                    otherComponent.changeLinkedComponentName(formData.name, componentName);
                 });
 
                 // Update the name of the jointjs graph element
@@ -48780,11 +48777,15 @@ Component.prototype.createLink = function (target) {
 Component.prototype.removeLink = function (oldTarget) {
     'use strict';
 
-    var position;
+    var position,
+        removed = false;
 
     if (oldTarget !== undefined && (position = this.links.indexOf(oldTarget.name)) >= 0) {
         this.links.splice(position, 1);
+        removed = true;
     }
+
+    return removed;
 };
 
 /**
@@ -48857,6 +48858,13 @@ Component.prototype.getOutputFields = function() {
     return results;
 };
 
+Component.prototype.changeLinkedComponentName = function (name, oldName) {
+    var removed = this.removeLink({name: oldName});
+    if (removed) {
+        this.createLink({name: name});
+    }
+};
+
 module.exports = Component;
 
 },{}],43:[function(require,module,exports){
@@ -48895,7 +48903,7 @@ Database.prototype.createLink = function (target) {
 Database.prototype.removeLink = function (oldTarget) {
     'use strict';
 
-    Component.prototype.removeLink.apply(this, arguments);
+    var result = Component.prototype.removeLink.apply(this, arguments);
 
     // Remove the master/slave relationship if the target has the same type
     if(oldTarget.type === this.type) {
@@ -48908,6 +48916,18 @@ Database.prototype.removeLink = function (oldTarget) {
             oldTarget.custom.repl = null;
             oldTarget.custom.master = null;
         }
+    }
+
+    return result;
+};
+
+Database.prototype.changeLinkedComponentName = function (name, oldName) {
+    'use strict';
+
+    Component.prototype.changeLinkedComponentName.apply(this, arguments);
+
+    if (this.custom.master === oldName) {
+        this.custom.master = name;
     }
 };
 
@@ -48941,11 +48961,23 @@ HttpServer.prototype.createLink = function (target) {
 HttpServer.prototype.removeLink = function (oldTarget) {
     'use strict';
 
-    Component.prototype.removeLink.apply(this, arguments);
+    var result = Component.prototype.removeLink.apply(this, arguments);
 
     // Unlink a fast-cgi app: remove the fastCgi attribute
     if (oldTarget.type === 'php-fpm' || oldTarget.type === 'hhvm') {
         this.custom.fastCgi = null;
+    }
+
+    return result;
+};
+
+HttpServer.prototype.changeLinkedComponentName = function (name, oldName) {
+    'use strict';
+
+    Component.prototype.changeLinkedComponentName.apply(this, arguments);
+
+    if (this.custom.fastCgi === oldName) {
+        this.custom.fastCgi = name;
     }
 };
 
@@ -48980,14 +49012,36 @@ LoadBalancer.prototype.createLink = function (target) {
 LoadBalancer.prototype.removeLink = function (oldTarget) {
     'use strict';
 
-    HttpServer.prototype.removeLink.apply(this, arguments);
+    var result = HttpServer.prototype.removeLink.apply(this, arguments);
+
+    this.removeBackend(oldTarget);
+
+    return result;
+};
+
+LoadBalancer.prototype.removeBackend = function(oldTarget) {
+    var removed = false;
 
     // Unlink a httpServer : remove load balancing
     if(oldTarget.class === 'HttpServer') {
         var pos = this.custom.backends.indexOf(oldTarget.name);
         if (pos > -1) {
             this.custom.backends.splice(pos, 1);
+            removed = true;
         }
+    }
+
+    return removed;
+};
+
+LoadBalancer.prototype.changeLinkedComponentName = function (name, oldName) {
+    'use strict';
+
+    HttpServer.prototype.changeLinkedComponentName.apply(this, arguments);
+
+    var removed = this.removeBackend({name: oldName});
+    if(removed) {
+        this.custom.backends.push({name: name});
     }
 };
 

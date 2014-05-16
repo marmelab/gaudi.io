@@ -83,16 +83,13 @@ angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal,
         });
 
         editModal.result.then(function (formData) {
+            // Detect component name changes
             if (formData.name !== componentName) {
                 delete $scope.components[componentName];
 
                 // Update links name of other components
-                angular.forEach($scope.components, function (otherName, otherComponent) {
-                    angular.forEach(otherComponent.links, function (linkIdx, link) {
-                        if (otherComponent.links[linkIdx] === componentName) {
-                            otherComponent.links[linkIdx] = formData.name;
-                        }
-                    });
+                angular.forEach($scope.components, function (otherComponent) {
+                    otherComponent.changeLinkedComponentName(formData.name, componentName);
                 });
 
                 // Update the name of the jointjs graph element

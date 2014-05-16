@@ -36,11 +36,15 @@ Component.prototype.createLink = function (target) {
 Component.prototype.removeLink = function (oldTarget) {
     'use strict';
 
-    var position;
+    var position,
+        removed = false;
 
     if (oldTarget !== undefined && (position = this.links.indexOf(oldTarget.name)) >= 0) {
         this.links.splice(position, 1);
+        removed = true;
     }
+
+    return removed;
 };
 
 /**
@@ -111,6 +115,13 @@ Component.prototype.getOutputFields = function() {
     });
 
     return results;
+};
+
+Component.prototype.changeLinkedComponentName = function (name, oldName) {
+    var removed = this.removeLink({name: oldName});
+    if (removed) {
+        this.createLink({name: name});
+    }
 };
 
 module.exports = Component;

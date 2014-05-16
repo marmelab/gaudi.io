@@ -24,14 +24,36 @@ LoadBalancer.prototype.createLink = function (target) {
 LoadBalancer.prototype.removeLink = function (oldTarget) {
     'use strict';
 
-    HttpServer.prototype.removeLink.apply(this, arguments);
+    var result = HttpServer.prototype.removeLink.apply(this, arguments);
+
+    this.removeBackend(oldTarget);
+
+    return result;
+};
+
+LoadBalancer.prototype.removeBackend = function(oldTarget) {
+    var removed = false;
 
     // Unlink a httpServer : remove load balancing
     if(oldTarget.class === 'HttpServer') {
         var pos = this.custom.backends.indexOf(oldTarget.name);
         if (pos > -1) {
             this.custom.backends.splice(pos, 1);
+            removed = true;
         }
+    }
+
+    return removed;
+};
+
+LoadBalancer.prototype.changeLinkedComponentName = function (name, oldName) {
+    'use strict';
+
+    HttpServer.prototype.changeLinkedComponentName.apply(this, arguments);
+
+    var removed = this.removeBackend({name: oldName});
+    if(removed) {
+        this.custom.backends.push({name: name});
     }
 };
 

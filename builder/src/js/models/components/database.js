@@ -33,7 +33,7 @@ Database.prototype.createLink = function (target) {
 Database.prototype.removeLink = function (oldTarget) {
     'use strict';
 
-    Component.prototype.removeLink.apply(this, arguments);
+    var result = Component.prototype.removeLink.apply(this, arguments);
 
     // Remove the master/slave relationship if the target has the same type
     if(oldTarget.type === this.type) {
@@ -46,6 +46,18 @@ Database.prototype.removeLink = function (oldTarget) {
             oldTarget.custom.repl = null;
             oldTarget.custom.master = null;
         }
+    }
+
+    return result;
+};
+
+Database.prototype.changeLinkedComponentName = function (name, oldName) {
+    'use strict';
+
+    Component.prototype.changeLinkedComponentName.apply(this, arguments);
+
+    if (this.custom.master === oldName) {
+        this.custom.master = name;
     }
 };
 
