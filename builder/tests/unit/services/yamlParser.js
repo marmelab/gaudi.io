@@ -17,6 +17,7 @@ describe('Service: yamlParser', function () {
         expect(yamlParser.cleanEmptyObjects({})).toEqual('');
         expect(yamlParser.cleanEmptyObjects({apache: true})).toEqual({apache: true});
         expect(yamlParser.cleanEmptyObjects({apache: 1, common: {zde: true}})).toEqual({apache: 1});
+        expect(yamlParser.cleanEmptyObjects({apache: 1, links: ['master']})).toEqual({apache: 1, links: ['master']});
         expect(yamlParser.cleanEmptyObjects({apache: 3, angular: {binary: {a: 4} }})).toEqual({apache: 3});
         expect(yamlParser.cleanEmptyObjects({apache: 3, pma: {}, nginx: true})).toEqual({apache: 3, nginx: true});
         expect(yamlParser.cleanEmptyObjects({apache: 3, pma: {fields: {}}, nginx: true})).toEqual({apache: 3, nginx: true});

@@ -36,11 +36,15 @@ Component.prototype.createLink = function (target) {
 Component.prototype.removeLink = function (oldTarget) {
     'use strict';
 
-    var position;
+    var position,
+        removed = false;
 
     if (oldTarget !== undefined && (position = this.links.indexOf(oldTarget.name)) >= 0) {
         this.links.splice(position, 1);
+        removed = true;
     }
+
+    return removed;
 };
 
 /**
@@ -98,6 +102,7 @@ Component.prototype.getOutputFields = function() {
     var self = this,
         results = {
             type: this.type,
+            links: this.links,
             custom: {}
         };
 
@@ -110,6 +115,14 @@ Component.prototype.getOutputFields = function() {
     });
 
     return results;
+};
+
+Component.prototype.changeLinkedComponentName = function (name, oldName) {
+    // Call remove link without calling child methods
+    var removed = Component.prototype.removeLink.apply(this, [{name: oldName}]);
+    if (removed) {
+        Component.prototype.createLink.apply(this, [{name: name}]);
+    }
 };
 
 module.exports = Component;

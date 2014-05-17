@@ -31,6 +31,13 @@ function buildScripts() {
                         jquery: '$'
                     }
                 },
+                backbone: {
+                    path: 'node_modules/joint/lib/backbone.js',
+                    exports: 'Backbone',
+                    depends: {
+                        jquery: '$'
+                    }
+                },
                 underscore: {
                     path: 'node_modules/underscore/underscore.js',
                     exports: '_'

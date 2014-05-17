@@ -43,4 +43,16 @@ describe('Model: loadBalancer', function () {
         expect(varnish.custom.backends).toEqual(['app2']);
         expect(varnish.links).toEqual(['app2']);
     });
+
+    it('Should rename other element when they change their name', function () {
+        var varnish = new componentFactory.LoadBalancer({type: 'varnish', name: 'lb'}),
+            apache1 = new componentFactory.HttpServer({type: 'apache', name: 'app1', 'class': 'HttpServer'}),
+            apache2 = new componentFactory.HttpServer({type: 'apache', name: 'app2', 'class': 'HttpServer'});
+
+        varnish.createLink(apache1);
+        varnish.createLink(apache2);
+
+        varnish.changeLinkedComponentName('app_1', 'app1');
+        expect(varnish.links).toEqual(['app2', 'app_1']);
+    });
 });
