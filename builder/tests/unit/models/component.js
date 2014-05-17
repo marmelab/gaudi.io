@@ -94,10 +94,33 @@ describe('Model: component', function () {
     it('should return all fields', function () {
         var apache = new componentFactory.Component({type: 'apache'});
         var nginx = new componentFactory.Component({type: 'nginx', port: '80: 80', fields: {port: {multiple: true}}});
-        var php = new componentFactory.Component({type: 'php', modules: 'gd, intl', fields: {modules: {array: true}}});
+        var php = new componentFactory.Component({name: 'php', type: 'php', modules: 'gd, intl', fields: {modules: {array: true}}});
 
-        expect(apache.getOutputFields()).toEqual({type: 'apache', custom: {}});
-        expect(nginx.getOutputFields()).toEqual({type: 'nginx', custom: {}, port: {80: 80}});
-        expect(php.getOutputFields()).toEqual({type: 'php', custom: {}, modules: ['gd', 'intl']});
+        apache.createLink(php);
+
+        expect(apache.getOutputFields()).toEqual({type: 'apache', links: ['php'], custom: {}});
+        expect(nginx.getOutputFields()).toEqual({type: 'nginx', links: [], custom: {}, port: {80: 80}});
+        expect(php.getOutputFields()).toEqual({type: 'php', links: [], custom: {}, modules: ['gd', 'intl']});
+    });
+
+    it('Should rename other element when they change their name', function () {
+        var apache = new componentFactory.Component({type: 'apache', name: 'apache'});
+        var nginx = new componentFactory.Component({type: 'nginx', name: 'nginx'});
+        var mysql = new componentFactory.Component({type: 'mysql', name: 'mysql'});
+
+        apache.createLink(nginx);
+        expect(apache.links).toEqual(['nginx']);
+
+        apache.changeLinkedComponentName('nginx_1', 'nginx');
+        expect(apache.links).toEqual(['nginx_1']);
+
+        apache.changeLinkedComponentName('nginx_1', 'nginx');
+        expect(apache.links).toEqual(['nginx_1']);
+
+        apache.createLink(mysql);
+        expect(apache.links).toEqual(['nginx_1', 'mysql']);
+
+        apache.changeLinkedComponentName('mysql', 'mysql');
+        expect(apache.links).toEqual(['nginx_1', 'mysql']);
     });
 });

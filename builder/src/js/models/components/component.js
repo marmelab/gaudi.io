@@ -118,9 +118,10 @@ Component.prototype.getOutputFields = function() {
 };
 
 Component.prototype.changeLinkedComponentName = function (name, oldName) {
-    var removed = this.removeLink({name: oldName});
+    // Call remove link without calling child methods
+    var removed = Component.prototype.removeLink.apply(this, [{name: oldName}]);
     if (removed) {
-        this.createLink({name: name});
+        Component.prototype.createLink.apply(this, [{name: name}]);
     }
 };
 

@@ -15,7 +15,7 @@ describe('Model: database', function () {
 
     it('should create master/slave relationship when linking 2 databases', function () {
         var master = new componentFactory.Database({type: 'mysql', name: 'master1'}),
-            slave = new componentFactory.Component({type: 'mysql', name: 'slave1'});
+            slave = new componentFactory.Database({type: 'mysql', name: 'slave1'});
 
         master.createLink(slave);
 
@@ -26,7 +26,7 @@ describe('Model: database', function () {
 
     it('should remove master/slave relationship when unlinking 2 databases', function () {
         var master = new componentFactory.Database({type: 'mysql', name: 'master1'}),
-            slave = new componentFactory.Component({type: 'mysql', name: 'slave1'});
+            slave = new componentFactory.Database({type: 'mysql', name: 'slave1'});
 
         master.createLink(slave);
 
@@ -39,5 +39,23 @@ describe('Model: database', function () {
         expect(master.custom.repl).toBe(null);
         expect(slave.custom.repl).toBe(null);
         expect(slave.custom.master).toBe(null);
+    });
+
+    it('Should rename other element when they change their name', function () {
+        var master = new componentFactory.Database({type: 'mysql', name: 'master1'}),
+            slave = new componentFactory.Database({type: 'mysql', name: 'slave1'});
+
+        master.createLink(slave);
+        expect(master.links).toEqual(['slave1']);
+        expect(slave.links).toEqual([]);
+
+        master.changeLinkedComponentName('db_slave1', 'slave1');
+        expect(master.links).toEqual(['db_slave1']);
+        expect(slave.links).toEqual([]);
+
+        slave.changeLinkedComponentName('master', 'master1');
+        expect(master.links).toEqual(['db_slave1']);
+        expect(slave.links).toEqual([]);
+        expect(slave.custom.master).toEqual('master');
     });
 });
