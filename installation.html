@@ -1,7 +1,7 @@
 ---
 layout: default
 title: "Installation"
-description: ""
+description: "Installing gaudi to build your development environment with a single configuration file"
 body: installation
 ---
 
@@ -15,7 +15,7 @@ body: installation
         the <code>templates/</code> folder</a>, one for each application type.
     </p>
 
-    <img class="requiremenets" src="./assets/img/golang-docker.png">
+    <img class="requiremenets" src="/assets/img/golang-docker.png">
 
     <h3>Requirements</h3>
 
@@ -23,7 +23,11 @@ body: installation
         gaudi requires <a target="_blank" href="https://www.docker.io/gettingstarted/">Docker</a> to run.
     </p>
 
-    <h3>Install gaudi on Debian & Ubuntu</h3>
+    <h3>OSX / Windows: Using Vagrant</h3>
+
+    <p>The <a href="https://github.com/Cethy/vagrant-gaudi" target="_blank">Cethy/vagrant-gaudi</a> repository describes how to install gaudi with Vagrant.</p>
+
+    <h3>Debian & Ubuntu</h3>
 
     <script src="https://gist.github.com/manuquentin/cb29d98a69075c97e716.js"></script>
 
@@ -31,14 +35,23 @@ body: installation
 
     <p>On other system you need to install <a target="_blank" href="http://golang.org/">Go 1.2</a> to install gaudi.</p>
 
+    <p>When Go is installed, run:</p>
+
+    <script src="https://gist.github.com/manuquentin/4bf0f664ec61f977d132.js"></script>
+
     <p>Check that your <code>PATH</code> includes <code>$GOPATH/bin</code>:</p>
 
     <script src="https://gist.github.com/DaphDaOne/081d133f01f4d44a7dbc.js"></script>
 
+    <p>Make sure that the <code>GOPATH</code> and <code>GOROOT</code> environment variables are correctly
+        set for the <code>root</code> user (or other user with root privileges).</p>
+
+    <h3>Via Puppet</h3>
+
+    <p>A <a href="https://forge.puppetlabs.com/cethy/gaudi" target="_blank">puppet module</a> is available to install gaudi.</p>
+
     <p>The <code>gaudi</code> application starts containers with Docker's commands which
         <a target="_blank" href="http://docs.docker.io/en/latest/use/basics/#dockergroup">requires sudo privileges</a>.<br>
-        Make sure that the <code>GOPATH</code> and <code>GOROOT</code> environment variables are correctly
-        set for the <code>root</code> user (or other user with root privileges).
     </p>
 
     <h3>Run</h3>

@@ -1,7 +1,7 @@
 ---
 layout: default
 title: "Components"
-description: ""
+description: "gaudi can start out of the box multiple applications like Nginx, NodeJs, Django, Php or Varnish"
 body: components
 ---
 
@@ -15,7 +15,7 @@ body: components
         <ul class="list-unstyled">
             <li class="card">
                 <div class="logo">
-                    <img src="./assets/img/logos-components/logo-nginx.jpg" />
+                    <img src="/assets/img/logos-components/nginx.jpg" alt="Nginx" />
                 </div>
                 <div>
                     <p>As a webserver:</p>
@@ -33,7 +33,7 @@ body: components
 
             <li class="card">
                 <div class="logo">
-                    <img src="./assets/img/logos-components/logo-mysql.jpg" />
+                    <img src="/assets/img/logos-components/mysql.jpg" alt="MySQL" />
                 </div>
                 <div>
                     <script src="https://gist.github.com/DaphDaOne/853e9c6cdbb2a2b7b6bc.js"></script>
@@ -53,7 +53,7 @@ body: components
 
             <li class="card">
                 <div class="logo">
-                    <img src="./assets/img/logos-components/logo-php-fpm.jpg" />
+                    <img src="/assets/img/logos-components/php-fpm.jpg" alt="Php FPM"/>
                 </div>
                 <div>
                     <script src="https://gist.github.com/DaphDaOne/97ae53de04ebf3cf3e28.js"></script>
@@ -67,7 +67,7 @@ body: components
 
             <li class="card">
                 <div class="logo">
-                    <img src="./assets/img/logos-components/logo-nodejs.jpg" />
+                    <img src="/assets/img/logos-components/nodejs.jpg" alt="NodeJS" />
                 </div>
                 <div>
                     <script src="https://gist.github.com/DaphDaOne/a7f24a1cbda7d8193bfd.js"></script>
@@ -77,6 +77,43 @@ body: components
                     </p>
                 </div>
             </li>
+
+            <li class="card">
+                <div class="logo">
+                    <img src="/assets/img/logos-components/golang.jpg" alt="Go" />
+                </div>
+                <div>
+                    <script src="https://gist.github.com/manuquentin/27418af5e4e54e3fe127.js"></script>
+                    <p>
+                        To start a Go application, use the <code>after_script</code> parameter.
+                    </p>
+                </div>
+            </li>
+
+            <li class="card">
+                <div class="logo">
+                    <a href="https://github.com/marmelab/gaudi/tree/master/example/django-apache"><img src="/assets/img/logos-components/django.jpg" alt="Django" /></a>
+                </div>
+                <div>
+                    <script src="https://gist.github.com/manuquentin/1771092dfe4f8b470ae6.js"></script>
+                    <p>
+                        Can be used with <code>Apache</code> to process request through <code>WSGI</code>.<br />
+                    </p>
+                    <p class="example">
+                        <span class="glyphicon glyphicon-share-alt"></span>
+                        <a href="https://github.com/marmelab/gaudi/tree/master/example/django-apache">See how to start Django with gaudi</a>
+                    </p>
+                </div>
+            </li>
+
+            <li class="card">
+                <div class="logo">
+                    <img src="/assets/img/logos-components/cassandra.jpg" alt="Cassandra" />
+                </div>
+                <div>
+                    <script src="https://gist.github.com/DaphDaOne/74c6b965801340f6985c.js"></script>
+                </div>
+            </li>
         </ul>
     </div>
 
@@ -84,7 +121,7 @@ body: components
         <ul class="list-unstyled">
             <li class="card">
                 <div class="logo">
-                    <img src="./assets/img/logos-components/logo-varnish.jpg" />
+                    <img src="/assets/img/logos-components/varnish.jpg" alt="Varnish" />
                 </div>
                 <div>
                     <script src="https://gist.github.com/DaphDaOne/ccfe5d9f4f5e45e62d1b.js"></script>
@@ -97,7 +134,23 @@ body: components
 
             <li class="card">
                 <div class="logo">
-                    <img src="./assets/img/logos-components/logo-apache.jpg" />
+                    <img src="/assets/img/logos-components/custom.jpg" alt="Custom template" />
+                </div>
+                <div>
+                    <script src="https://gist.github.com/manuquentin/4c1ae9572b22cfdb12cd.js"></script>
+                    <p>
+                        You can integrate your own Dockerfile in gaudi with the <code>custom</code> type.
+                    </p>
+                    <p class="example">
+                        <span class="glyphicon glyphicon-share-alt"></span>
+                        <a href="https://github.com/marmelab/gaudi/tree/master/example/custom-template">See to use custom template</a>
+                    </p>
+                </div>
+            </li>
+
+            <li class="card">
+                <div class="logo">
+                    <img src="/assets/img/logos-components/apache.jpg" alt="Apache" />
                 </div>
                 <div>
                     <script src="https://gist.github.com/DaphDaOne/88939092f4d7593488b3.js"></script>
@@ -107,7 +160,7 @@ body: components
 
             <li class="card">
                 <div class="logo">
-                    <img src="./assets/img/logos-components/logo-php.jpg" />
+                    <img src="/assets/img/logos-components/php.jpg" alt="Php" />
                 </div>
                 <div>
                     <script src="https://gist.github.com/DaphDaOne/f19404e4670d755fa1eb.js"></script>
@@ -120,7 +173,7 @@ body: components
 
             <li class="card">
                 <div class="logo">
-                    <img src="./assets/img/logos-components/logo-phpmyadmin.jpg" />
+                    <img src="/assets/img/logos-components/phpmyadmin.jpg" alt="PhpMyAdmin" />
                 </div>
                 <div>
                     <script src="https://gist.github.com/manuquentin/83c0f6bb1979901430f3.js"></script>
@@ -132,19 +185,10 @@ body: components
 
             <li class="card">
                 <div class="logo">
-                    <img src="./assets/img/logos-components/logo-jackrabbit.jpg" />
+                    <img src="/assets/img/logos-components/jackrabbit.jpg" alt="Jackrabbit" />
                 </div>
                 <div>
                     <script src="https://gist.github.com/DaphDaOne/de42be09823ef804b049.js"></script>
-                </div>
-            </li>
-
-            <li class="card">
-                <div class="logo">
-                    <img src="./assets/img/logos-components/logo-cassandra.jpg" />
-                </div>
-                <div>
-                    <script src="https://gist.github.com/DaphDaOne/74c6b965801340f6985c.js"></script>
                 </div>
             </li>
         </ul>
