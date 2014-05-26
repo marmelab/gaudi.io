@@ -19,7 +19,7 @@ angular.module('gaudiBuilder').service('componentFetcher', function ($q, $http, 
         if (availableComponents) {
             deferred.resolve(availableComponents);
         } else {
-            $http.get('data/components.json').success(function (rawComponents) {
+            $http.get('/builder/data/components.json').success(function (rawComponents) {
                 availableComponents = {};
 
                 angular.forEach(rawComponents, function (rawComponent, type) {
