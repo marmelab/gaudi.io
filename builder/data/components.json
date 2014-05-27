@@ -2,7 +2,7 @@
     "apache": {
         "label": "Apache",
         "binary": false,
-        "logo": "./img/logos/apache.jpg",
+        "logo": "/builder/img/logos/apache.jpg",
         "class": "HttpServer",
         "fields": {
             "ports" : {"label": "Ports :", "type": "text", "default": "80: 80", "multiple": true},
@@ -20,7 +20,7 @@
     "nginx": {
         "label": "Nginx",
         "binary": false,
-        "logo": "./img/logos/nginx.jpg",
+        "logo": "/builder/img/logos/nginx.jpg",
         "class": "LoadBalancer",
         "fields": {
             "ports" : {"label": "Ports :", "type": "text", "default": "80: 80"},
@@ -38,7 +38,7 @@
     "varnish": {
         "label": "Varnish",
         "binary": false,
-        "logo": "./img/logos/varnish.png",
+        "logo": "/builder/img/logos/varnish.png",
         "class": "LoadBalancer",
         "fields": {
             "ports" : {"label": "Ports :", "type": "text", "default": "80: 80", "multiple": true},
@@ -54,7 +54,7 @@
     "mysql": {
         "label": "MySQL",
         "binary": false,
-        "logo": "./img/logos/mysql.png",
+        "logo": "/builder/img/logos/mysql.png",
         "class": "Database",
         "fields": {
             "ports" : {"label": "Ports :", "type": "text", "default": "3306: 3306", "multiple": true},
@@ -71,7 +71,7 @@
     "php": {
         "label": "PHP",
         "binary": false,
-        "logo": "./img/logos/php.png",
+        "logo": "/builder/img/logos/php.png",
         "class": "Component",
         "fields": {
             "volumes" : {"label": "Volumes :", "type": "text", "default": ".: /var/www", "multiple": true},
@@ -82,7 +82,7 @@
     "php-fpm": {
         "label": "PHP-FPM",
         "binary": false,
-        "logo": "./img/logos/php.png",
+        "logo": "/builder/img/logos/php.png",
         "class": "Component",
         "fields": {
             "ports" : {"label": "Ports :", "type": "text", "default": "9000: 9000", "multiple": true},
@@ -94,7 +94,7 @@
     "hhvm": {
         "label": "HHVM",
         "binary": false,
-        "logo": "./img/logos/HHVM.png",
+        "logo": "/builder/img/logos/HHVM.png",
         "class": "Component",
         "fields": {
             "ports" : {"label": "Ports :", "type": "text", "default": "9000: 9000", "multiple": true},
@@ -105,7 +105,7 @@
     "nodejs": {
         "label": "Node.js",
         "binary": false,
-        "logo": "./img/logos/nodejs.png",
+        "logo": "/builder/img/logos/nodejs.png",
         "class": "Component",
         "fields": {
             "ports" : {"label": "Ports :", "type": "text", "default": "80: 80", "multiple": true},
@@ -117,7 +117,7 @@
     "cassandra": {
         "label": "Cassandra",
         "binary": false,
-        "logo": "./img/logos/cassandra.png",
+        "logo": "/builder/img/logos/cassandra.png",
         "class": "Component",
         "fields": {
             "ports" : {"label": "Ports :", "type": "text", "default": "9160: 9160, 7000: 7000", "multiple": true},
@@ -134,7 +134,7 @@
     "jackrabbit": {
         "label": "Jackrabbit",
         "binary": false,
-        "logo": "./img/logos/jackrabbit.gif",
+        "logo": "/builder/img/logos/jackrabbit.gif",
         "class": "Component",
         "fields": {
             "ports" : {"label": "Ports :", "type": "text", "default": "8080: 8080", "multiple": true},
@@ -147,9 +147,52 @@
     "phpmyadmin": {
         "label": "phpMyAdmin",
         "binary": false,
-        "logo": "./img/logos/phpmyadmin.png",
+        "logo": "/builder/img/logos/phpmyadmin.png",
         "class": "Component",
         "fields": {
+            "ports" : {"label": "Ports :", "type": "text", "default": "80: 80", "multiple": true},
+            "volumes" : {"label": "Volumes :", "type": "text", "default": "", "multiple": true},
+            "before_script" : {"label": "Before script :", "type": "text", "default": ""},
+            "after_script" : {"label": "After script :", "type": "text", "default": ""},
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}
+        }
+    },
+    "index": {
+        "label": "Docker index",
+        "binary": false,
+        "logo": "/builder/img/logos/docker.jpg",
+        "class": "Component",
+        "fields": {
+            "image" : {"label": "Image :", "type": "text", "default": "", "multiple": false},
+            "ports" : {"label": "Ports :", "type": "text", "default": "80: 80", "multiple": true},
+            "volumes" : {"label": "Volumes :", "type": "text", "default": "", "multiple": true},
+            "before_script" : {"label": "Before script :", "type": "text", "default": ""},
+            "after_script" : {"label": "After script :", "type": "text", "default": ""},
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}
+        }
+    },
+    "prebuild": {
+        "label": "Prebuild image",
+        "binary": false,
+        "logo": "/builder/img/logos/github.jpg",
+        "class": "Component",
+        "fields": {
+            "image" : {"label": "Image :", "type": "text", "default": "", "multiple": false},
+            "path" : {"label": "Path :", "type": "text", "default": "github.com/...", "multiple": false},
+            "ports" : {"label": "Ports :", "type": "text", "default": "80: 80", "multiple": true},
+            "volumes" : {"label": "Volumes :", "type": "text", "default": "", "multiple": true},
+            "before_script" : {"label": "Before script :", "type": "text", "default": ""},
+            "after_script" : {"label": "After script :", "type": "text", "default": ""},
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}
+        }
+    },
+    "custom": {
+        "label": "Custom image",
+        "binary": false,
+        "logo": "/builder/img/logos/custom.jpg",
+        "class": "Component",
+        "fields": {
+            "template" : {"label": "Template path :", "type": "text", "default": "", "multiple": false},
             "ports" : {"label": "Ports :", "type": "text", "default": "80: 80", "multiple": true},
             "volumes" : {"label": "Volumes :", "type": "text", "default": "", "multiple": true},
             "before_script" : {"label": "Before script :", "type": "text", "default": ""},
@@ -160,7 +203,7 @@
     "bower": {
         "label": "Bower",
         "binary": true,
-        "logo": "./img/logos/bower.png",
+        "logo": "/builder/img/logos/bower.png",
         "class": "Component",
         "fields": {
             "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}
@@ -169,7 +212,7 @@
     "composer": {
         "label": "Composer",
         "binary": true,
-        "logo": "./img/logos/composer.png",
+        "logo": "/builder/img/logos/composer.png",
         "class": "Component",
         "fields": {
             "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}
@@ -178,7 +221,7 @@
     "jekyll": {
         "label": "Jekyll",
         "binary": true,
-        "logo": "./img/logos/jekyll.png",
+        "logo": "/builder/img/logos/jekyll.png",
         "class": "Component",
         "fields": {
             "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}
@@ -187,7 +230,7 @@
     "npm": {
         "label": "Npm",
         "binary": true,
-        "logo": "./img/logos/npm.png",
+        "logo": "/builder/img/logos/npm.png",
         "class": "Component",
         "fields": {
             "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}

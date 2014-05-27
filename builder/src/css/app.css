@@ -1,5 +1,10 @@
-html, body, .container-fluid, .sidebar {
+html, body, .sidebar {
     height:100%;
+}
+
+.sidebar .componentsContainer, .sidebar #result {
+    width: 98%;
+    margin: 0 auto;
 }
 
 .page-header {
@@ -13,6 +18,10 @@ html, body, .container-fluid, .sidebar {
     background-color: #49ae80;
     background-image: linear-gradient(to bottom,#4cb183 0,#49ae80 100%);
     border-bottom: 1px solid #c1c1c1;
+}
+
+.builder .content {
+    margin-left: 0;
 }
 
 .page-header h1 {
@@ -35,19 +44,22 @@ input.search {
     font-weight: normal;
 }
 
-.content {
-    margin-top: 90px;
-    height: 85%;
-}
-
 #result {
-    height: 55%;
+    position: relative;
+    height: 300px;
 }
 
 #result pre {
     height: 80%;
     overflow-y: scroll;
 }
+
+
+#result .btn-primary {
+    position: absolute;
+    right: 0;
+}
+
 
 #board {
     position: relative;
@@ -56,6 +68,7 @@ input.search {
 
 #board svg {
     border: 1px solid #eee;
+    border-top: none;
     background-image:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAHUlEQVQYV2NkYGAwBuKzQIwXMBJSAJMfVUidcAQAnUQBC6jEGBUAAAAASUVORK5CYII=')
 }
 
@@ -127,11 +140,6 @@ input.search {
     background-image: linear-gradient(to bottom,#4cb183 0,#49ae80 100%);
 }
 
-#result .btn-primary {
-    position: absolute;
-    right: 0;
-}
-
 .modal-footer .btn-warning {
     border: 1px solid #c1c1c1;;
     background-color: #c1c1c1;
@@ -167,18 +175,23 @@ form .error {
 .components .list-group-item.col-md-6 {
     height: 70px;
     width: 48%;
-    margin: 2px 2px 2px 0;
+    margin: 2px 3px 2px 0;
 }
 
 .componentsContainer {
     position: relative;
 }
 
+.componentsContainer input {
+    border-top: none;
+    border-left: 1px solid #ddd;
+}
+
 .glyphicon-search {
     position: absolute;
     right: 0;
     top: 0;
-    padding: 7px 8px;
+    padding: 5px 20px;
     pointer-events: none;
     font-size: 13px;
 }
@@ -201,4 +214,8 @@ form .error {
 
 .component.fixed .element {
     cursor: default!important;
+}
+
+.modal-content label {
+    padding-right: 10px;
 }

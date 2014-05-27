@@ -1,0 +1,22 @@
+---
+layout: default
+title: "gaudi - Build Your Project's Architecture File"
+description: "gaudi can start out of the box multiple applications like Nginx, NodeJs, Django, Php or Varnish"
+body: builder
+---
+<div class="container-fluid" ng-app="gaudiBuilder">
+    <a href="https://github.com/marmelab/gaudi" class="fork"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"></a>
+
+    <div class="row content">
+        <section class="col-md-3 sidebar">
+            <div class="componentsContainer" ng-controller="componentsCtrl" ng-include="'/builder/views/components.html'"></div>
+
+            <div id="result" ng-controller="yamlCtrl" ng-include="'/builder/views/yaml.html'"></div>
+        </section>
+
+        <section id="board" class="col-md-9" ng-controller="boardCtrl">
+            <div id="graphContainer" droppable="handleDrop"></div>
+        </section>
+    </div>
+</div>
+

@@ -8,9 +8,9 @@
             </div>
         </div>
 
-        <div class="form-field form-group" ng-include="'views/edit-attribute.html'" ng-repeat="(name, field) in fields.common"></div>
+        <div class="form-field form-group" ng-include="'builder/views/edit-attribute.html'" ng-repeat="(name, field) in fields.common"></div>
         <hr ng-show="fields.custom" />
-        <div class="form-field form-group" ng-include="'views/edit-attribute.html'" ng-repeat="(name, field) in fields.custom" ng-init="values = values['custom']"></div>
+        <div class="form-field form-group" ng-include="'builder/views/edit-attribute.html'" ng-repeat="(name, field) in fields.custom" ng-init="values = values['custom']"></div>
     </form>
 
     <div class="modal-footer">
