@@ -20,7 +20,7 @@ describe('Service: componentFetcher', function () {
     it('should return component from a distant csv', function () {
         var self = this;
         // backend definition common for all tests
-        $httpBackend.when('GET', 'data/components.json').respond({
+        $httpBackend.when('GET', '/builder/data/components.json').respond({
             "apache": {
                 "label": "Apache",
                 "class": "HttpServer",
@@ -51,7 +51,7 @@ describe('Service: componentFetcher', function () {
     it('should call reject when the ajax call fails', function () {
         var self = this;
         // backend definition common for all tests
-        $httpBackend.when('GET', 'data/components.json').respond(500, '');
+        $httpBackend.when('GET', '/builder/data/components.json').respond(500, '');
 
         componentFetcher.getAllComponents().then(function () {
             self.fail(Error());
@@ -65,14 +65,14 @@ describe('Service: componentFetcher', function () {
     it('should not send ajax request twice', function () {
         var self = this;
         // backend definition common for all tests
-        $httpBackend.when('GET', 'data/components.json').respond({
+        $httpBackend.when('GET', '/builder/data/components.json').respond({
             "apache": {
                 "label": "Apache",
                 "class": "HttpServer"
             }
         });
 
-        $httpBackend.when('GET', 'data/components.json').respond({
+        $httpBackend.when('GET', '/builder/data/components.json').respond({
             "apache": {
                 "label": "Apache2",
                 "class": "HttpServer"

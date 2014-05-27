@@ -186,6 +186,20 @@
             "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}
         }
     },
+    "custom": {
+        "label": "Custom image",
+        "binary": false,
+        "logo": "/builder/img/logos/custom.jpg",
+        "class": "Component",
+        "fields": {
+            "template" : {"label": "Template path :", "type": "text", "default": "", "multiple": false},
+            "ports" : {"label": "Ports :", "type": "text", "default": "80: 80", "multiple": true},
+            "volumes" : {"label": "Volumes :", "type": "text", "default": "", "multiple": true},
+            "before_script" : {"label": "Before script :", "type": "text", "default": ""},
+            "after_script" : {"label": "After script :", "type": "text", "default": ""},
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}
+        }
+    },
     "bower": {
         "label": "Bower",
         "binary": true,
