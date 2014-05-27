@@ -54,7 +54,7 @@ body: installation
         <a target="_blank" href="http://docs.docker.io/en/latest/use/basics/#dockergroup">requires sudo privileges</a>.<br>
     </p>
 
-    <h3>Run</h3>
+    <h3 id="options">Options</h3>
 
     <p>To start gaudi, run <code>sudo gaudi</code> in the current folder.</p>
 
@@ -76,6 +76,10 @@ body: installation
         <tr>
             <td><code>--quiet</code></td>
             <td>Do not display <code>build</code> & <code>pull</code> output</td>
+        </tr>
+        <tr>
+            <td><code>--empty-cmd</code></td>
+            <td>Use `/bin/bash` for `CMD` on specified container (separated by comma, can be `all`. eg: `---empty-cmd=app,db`). Useful for debugging a container</td>
         </tr>
         <tr>
             <td><code>rebuild</code></td>
