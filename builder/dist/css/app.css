@@ -2,6 +2,11 @@ html, body, .sidebar {
     height:100%;
 }
 
+.sidebar .componentsContainer, .sidebar #result {
+    width: 98%;
+    margin: 0 auto;
+}
+
 .page-header {
     margin: 0 0 10px 0;
     padding: 15px;
@@ -42,8 +47,6 @@ input.search {
 #result {
     position: relative;
     height: 300px;
-    width: 98%;
-    margin: 0 auto;
 }
 
 #result pre {
@@ -181,7 +184,7 @@ form .error {
 
 .componentsContainer input {
     border-top: none;
-    border-left: none;
+    border-left: 1px solid #ddd;
 }
 
 .glyphicon-search {
