@@ -56,9 +56,9 @@ angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal,
         delete $scope.components[name];
 
         // Remove links
-        angular.forEach($scope.components, function (componentName, component) {
+        angular.forEach($scope.components, function (component, componentName) {
             if ((position = $.inArray(name, component.links)) >= 0) {
-                component.links = component.links.splice(position, 1);
+                component.links.splice(position, 1);
             }
         });
 

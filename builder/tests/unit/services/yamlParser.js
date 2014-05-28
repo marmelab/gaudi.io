@@ -33,6 +33,10 @@ describe('Service: yamlParser', function () {
         expect(yamlParser.cleanResult({hello: {a: '12', c: ''}})).toEqual({hello: {a: '12'}});
     });
 
+    it('should clean empty fields and object', function () {
+        expect(yamlParser.cleanEmptyObjects(yamlParser.cleanResult({"django": {"type": "django", "custom": {"pip_modules": ""}, "apt_get": ""}}))).toEqual({"django": {"type": "django"}});
+    });
+
     it('should dump yaml', function () {
         expect(yamlParser.dump({})).toEqual('');
         expect(yamlParser.dump({hello: true}).trim()).toEqual('hello: true');

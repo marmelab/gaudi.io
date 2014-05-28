@@ -23,8 +23,8 @@
         "logo": "/builder/img/logos/nginx.jpg",
         "class": "LoadBalancer",
         "fields": {
-            "ports" : {"label": "Ports :", "type": "text", "default": "80: 80"},
-            "volumes" : {"label": "Volumes :", "type": "text", "default": ".: /var/www"},
+            "ports" : {"label": "Ports :", "type": "text", "default": "80: 80", "multiple": true},
+            "volumes" : {"label": "Volumes :", "type": "text", "default": ".: /var/www", "multiple": true},
             "before_script" : {"label": "Before script :", "type": "text", "default": ""},
             "after_script" : {"label": "After script :", "type": "text", "default": ""},
             "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}
@@ -91,6 +91,23 @@
             "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}
         }
     },
+    "python": {
+        "label": "Python",
+        "binary": false,
+        "logo": "/builder/img/logos/python.png",
+        "class": "Component",
+        "fields": {
+            "ports" : {"label": "Ports :", "type": "text", "default": "", "multiple": true},
+            "volumes" : {"label": "Volumes :", "type": "text", "default": "", "multiple": true},
+            "before_script" : {"label": "Before script :", "type": "text", "default": ""},
+            "after_script" : {"label": "After script :", "type": "text", "default": ""},
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}
+        },
+        "customFields": {
+            "pip_modules": {"label": "Pip modules :", "type": "text", "default": "", "multiple": true},
+            "version": {"label": "Python version (x.x.x) :", "type": "text", "default": ""}
+        }
+    },
     "hhvm": {
         "label": "HHVM",
         "binary": false,
@@ -131,6 +148,23 @@
             "heapNewSize": {"label": "HeapNewSize :", "type": "text", "default": "128M"}
         }
     },
+    "golang": {
+        "label": "Go",
+        "binary": false,
+        "logo": "/builder/img/logos/go.png",
+        "class": "Component",
+        "fields": {
+            "ports" : {"label": "Ports :", "type": "text", "default": "", "multiple": true},
+            "volumes" : {"label": "Volumes :", "type": "text", "default": "", "multiple": true},
+            "before_script" : {"label": "Before script :", "type": "text", "default": ""},
+            "after_script" : {"label": "After script :", "type": "text", "default": ""},
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}
+        },
+        "customFields": {
+            "modules": {"label": "Go modules :", "type": "text", "default": "", "multiple": true},
+            "version": {"label": "Go version (x.x) :", "type": "text", "default": ""}
+        }
+    },
     "jackrabbit": {
         "label": "Jackrabbit",
         "binary": false,
@@ -157,6 +191,24 @@
             "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}
         }
     },
+    "django": {
+        "label": "Django",
+        "binary": false,
+        "logo": "/builder/img/logos/django.png",
+        "class": "Component",
+        "fields": {
+            "ports" : {"label": "Ports :", "type": "text", "default": "80: 80", "multiple": true},
+            "volumes" : {"label": "Volumes :", "type": "text", "default": ".: /app", "multiple": true},
+            "before_script" : {"label": "Before script :", "type": "text", "default": ""},
+            "after_script" : {"label": "After script :", "type": "text", "default": "sleep 5 && python /app/manage.py syncdb --noinput && echo \"from django.contrib.auth.models import User; User.objects.create_superuser(\\\"root\\\", \\\"root@myapp.com\\\", \\\"root\\\")\" | python /app/manage.py shell"},
+            "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}
+        },
+        "customFields": {
+            "pip_modules": {"label": "Pip modules :", "type": "text", "default": "", "multiple": true},
+            "project_name": {"label": "Project name :", "type": "text", "default": ""},
+            "app_name": {"label": "Application name :", "type": "text", "default": ""}
+        }
+    },
     "index": {
         "label": "Docker index",
         "binary": false,
@@ -171,8 +223,8 @@
             "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}
         }
     },
-    "prebuild": {
-        "label": "Prebuild image",
+    "github": {
+        "label": "Github image",
         "binary": false,
         "logo": "/builder/img/logos/github.jpg",
         "class": "Component",
