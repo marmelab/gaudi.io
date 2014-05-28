@@ -48,7 +48,8 @@
             "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}
         },
         "customFields": {
-            "backends": {"label": "Backends :", "type": "links"}
+            "backends": {"label": "Backends :", "type": "links"},
+            "probe_url": {"label": "Probe check URL :", "type": "text"}
         }
     },
     "mysql": {
@@ -89,6 +90,12 @@
             "volumes" : {"label": "Volumes :", "type": "text", "default": ".: /var/www", "multiple": true},
             "modules": {"label": "Modules :", "type": "choices", "choices": ["gd", "apc", "zip"]},
             "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}
+        },
+        "customFields": {
+            "memoryLimit": {"label": "Memory limit :", "type": "text", "default": ""},
+            "maxExecutionTime": {"label": "Max execution time :", "type": "text", "default": ""},
+            "maxInputTime": {"label": "Max input time :", "type": "text", "default": ""},
+            "locale": {"label": "Locale", "type": "text", "default": ""}
         }
     },
     "python": {
@@ -117,6 +124,10 @@
             "ports" : {"label": "Ports :", "type": "text", "default": "9000: 9000", "multiple": true},
             "volumes" : {"label": "Volumes :", "type": "text", "default": ".: /var/www", "multiple": true},
             "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}
+        },
+        "customFields": {
+            "memoryLimit": {"label": "Memory limit :", "type": "text", "default": ""},
+            "maxExecutionTime": {"label": "Max execution time :", "type": "text", "default": ""}
         }
     },
     "nodejs": {
