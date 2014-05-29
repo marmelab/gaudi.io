@@ -28,6 +28,16 @@ body: components
                         The <code>backends</code> custom parameter defines which applications are load balanced by Nginx.
                         Theses applications have to be linked together using <code>links</code>.
                     </p>
+
+                    <p class="example">
+                        <span class="glyphicon glyphicon-share-alt"></span>
+                        <a href="https://github.com/marmelab/gaudi/tree/master/examples/nginx">See to use nginx as a webserver</a>
+                    </p>
+
+                    <p class="example">
+                        <span class="glyphicon glyphicon-share-alt"></span>
+                        <a href="https://github.com/marmelab/gaudi/tree/master/examples/nginx-load-balancing">See to use nginx as a load balancer</a>
+                    </p>
                 </div>
             </li>
 
@@ -61,6 +71,11 @@ body: components
                         Can be used with <code>Apache</code> or <code>Nginx</code> to process a
                         PHP request through <code>FastCGI</code>.
                     </p>
+
+                    <p class="example">
+                        <span class="glyphicon glyphicon-share-alt"></span>
+                        <a href="https://github.com/marmelab/gaudi/tree/master/examples/nginx-php">How to use PHP-FPM with Nginx and gaudi</a>
+                    </p>
                 </div>
             </li>
 
@@ -75,6 +90,11 @@ body: components
                         To start a Node.js application, use the <code>after_script</code> parameter.
                         If the <code>after_script</code> is not set, Node.js will run without arguments.
                     </p>
+
+                    <p class="example">
+                        <span class="glyphicon glyphicon-share-alt"></span>
+                        <a href="https://github.com/marmelab/gaudi/tree/master/examples/nodejs">An example of NodeJS running a webserver</a>
+                    </p>
                 </div>
             </li>
 
@@ -87,12 +107,17 @@ body: components
                     <p>
                         To start a Go application, use the <code>after_script</code> parameter.
                     </p>
+
+                    <p class="example">
+                        <span class="glyphicon glyphicon-share-alt"></span>
+                        <a href="https://github.com/marmelab/gaudi/tree/master/examples/golang">How to run a go script</a>
+                    </p>
                 </div>
             </li>
 
             <li class="card">
                 <div class="logo">
-                    <a href="https://github.com/marmelab/gaudi/tree/master/example/django-apache"><img src="/assets/img/logos-components/django.jpg" alt="Django" /></a>
+                    <a href="https://github.com/marmelab/gaudi/tree/master/examples/django-apache"><img src="/assets/img/logos-components/django.jpg" alt="Django" /></a>
                 </div>
                 <div>
                     <script src="https://gist.github.com/manuquentin/1771092dfe4f8b470ae6.js"></script>
@@ -101,7 +126,7 @@ body: components
                     </p>
                     <p class="example">
                         <span class="glyphicon glyphicon-share-alt"></span>
-                        <a href="https://github.com/marmelab/gaudi/tree/master/example/django-apache">See how to start Django with gaudi</a>
+                        <a href="https://github.com/marmelab/gaudi/tree/master/examples/django-apache">See how to start Django with gaudi</a>
                     </p>
                 </div>
             </li>
@@ -129,6 +154,16 @@ body: components
                         The <code>backends</code> custom parameter defines which applications are load balanced by Varnish.
                         Theses applications have to be linked together using <code>links</code>.
                     </p>
+
+                    <p class="example">
+                        <span class="glyphicon glyphicon-share-alt"></span>
+                        <a href="https://github.com/marmelab/gaudi/tree/master/examples/varnish">How to run Varnish as a webserver</a>
+                    </p>
+
+                    <p class="example">
+                        <span class="glyphicon glyphicon-share-alt"></span>
+                        <a href="https://github.com/marmelab/gaudi/tree/master/examples/varnish-load-balancing">How to run Varnish as load balancer</a>
+                    </p>
                 </div>
             </li>
 
@@ -143,7 +178,7 @@ body: components
                     </p>
                     <p class="example">
                         <span class="glyphicon glyphicon-share-alt"></span>
-                        <a href="https://github.com/marmelab/gaudi/tree/master/example/custom-template">See to use custom template</a>
+                        <a href="https://github.com/marmelab/gaudi/tree/master/examples/custom-template">See to use custom template</a>
                     </p>
                 </div>
             </li>
@@ -156,6 +191,11 @@ body: components
                     <script src="https://gist.github.com/DaphDaOne/88939092f4d7593488b3.js"></script>
                     <p>The <code>fastCgi</code> custom parameter points out an application where to forward Fast-CGI scripts.</p>
                 </div>
+
+                <p class="example">
+                    <span class="glyphicon glyphicon-share-alt"></span>
+                    <a href="https://github.com/marmelab/gaudi/tree/master/examples/apache-php-mysql">Running a LAMP environment with gaudi</a>
+                </p>
             </li>
 
             <li class="card">
@@ -168,6 +208,11 @@ body: components
                         This application is a simple php5 service, if you want to use it with <code>Apache</code> or
                         <code>Nginx</code>, use the <code>PHP-FPM</code> one.
                     </p>
+
+                    <p class="example">
+                        <span class="glyphicon glyphicon-share-alt"></span>
+                        <a href="https://github.com/marmelab/gaudi/tree/master/examples/php">See how to run a php script</a>
+                    </p>
                 </div>
             </li>
 
@@ -179,6 +224,11 @@ body: components
                     <script src="https://gist.github.com/manuquentin/83c0f6bb1979901430f3.js"></script>
                     <p>
                         You can link a <code>phpmyadmin</code> container to a <code>mysql</code> to manage it easily.
+                    </p>
+
+                    <p class="example">
+                        <span class="glyphicon glyphicon-share-alt"></span>
+                        <a href="https://github.com/marmelab/gaudi/tree/master/examples/phpMyAdmin">How to run a phpMyAdmin service with Docker</a>
                     </p>
                 </div>
             </li>
