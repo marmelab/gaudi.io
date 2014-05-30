@@ -1,6 +1,6 @@
-Version: 0.1.6
+Version: 0.2.0
 Component: main
 Origin: gaudi.io
 Label: apt repository
 Architecture: amd64
-Description: Gaudi debian package repository
+Description: gaudi debian package repository
