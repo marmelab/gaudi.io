@@ -141,11 +141,15 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
     },
 
     onMouseMove: function (evt) {
-        if (!this.link || !this.canUpdateLink || evt.offsetX <= 10) {
+        if (!this.link || !this.canUpdateLink || evt.clientX <= 10) {
             return;
         }
 
-        this.link.set('target', g.point(evt.offsetX, evt.offsetY));
+        var droppableDocumentOffset = $(board).offset();
+
+        console.log(evt.offsetX + "," + evt.clientX);
+
+        this.link.set('target', g.point(evt.clientX - droppableDocumentOffset.left, evt.clientY - droppableDocumentOffset.top));
     }
 });
 

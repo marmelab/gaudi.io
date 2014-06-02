@@ -108,8 +108,8 @@ angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal,
     $scope.handleDrop = function (component, board, event) {
         var
             droppableDocumentOffset = $(board).offset(),
-            left = event.x - droppableDocumentOffset.left,
-            top = event.y - droppableDocumentOffset.top,
+            left = (event.x || event.clientX) - droppableDocumentOffset.left - (component.clientWidth / 2),
+            top = (event.y || event.clientY) - droppableDocumentOffset.top - (component.clientHeight / 2),
             type = component.attributes['data-type'].value,
             name = selectedComponents.getElementName(type),
             componentInstance = allComponents[type],
