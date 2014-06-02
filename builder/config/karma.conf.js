@@ -8,6 +8,7 @@ module.exports = function (config) {
         frameworks: ['jasmine'],
 
         files: [
+            {pattern: '../bower_components/zeroclipboard/ZeroClipboard.js'},
             {pattern: 'dist/js/app.js'},
             {pattern: 'tests/lib/angular/angular-mocks.js'},
             {pattern: 'tests/unit/**/*.js'}
