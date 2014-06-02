@@ -2,9 +2,16 @@
 
 require('angular/angular');
 require('angular-route/angular-route');
+require('ng-clip/dest/ng-clip');
 window.jQuery = require('jquery');
 
-angular.module('gaudiBuilder', ['ui.bootstrap.modal']);
+var app = angular.module('gaudiBuilder', ['ui.bootstrap.modal', 'ngClipboard']);
+
+app.config(['ngClipProvider', function (ngClipProvider) {
+    'use strict';
+
+    ngClipProvider.setPath("bower_components/zeroclipboard/ZeroClipboard.swf");
+}]);
 
 require('./controllers/board');
 require('./controllers/components');
