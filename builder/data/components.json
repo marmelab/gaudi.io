@@ -12,7 +12,7 @@
             "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}
         },
         "customFields": {
-            "fastCgi": {"label": "Forward fast CGI to :", "type": "link"},
+            "fastCgi": {"label": "Forward fast CGI :", "type": "link"},
             "documentRoot": {"label": "DocumentRoot :", "type": "text", "default": "/var/www"},
             "modules": {"label": "Modules :", "type": "choices", "choices": ["rewrite", "alias", "auth_basic", "auth_digest", "ssl"]}
         }
@@ -30,7 +30,7 @@
             "apt_get": {"label": "Apt packets :", "type": "text", "default": "", "array": true}
         },
         "customFields": {
-            "fastCgi": {"label": "Forward fast CGI to :", "type": "link"},
+            "fastCgi": {"label": "Forward fast CGI :", "type": "link"},
             "backends": {"label": "Backends :", "type": "links"},
             "documentRoot": {"label": "DocumentRoot :", "type": "text", "default": "/var/www"}
         }
