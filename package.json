@@ -16,7 +16,8 @@
     "angular-route": "angular/bower-angular-route",
     "angular-bootstrap": "angular-ui/bootstrap",
     "joint": "manuquentin/joint",
-    "jquery.fn": "padolsey/jquery.fn"
+    "jquery.fn": "padolsey/jquery.fn",
+    "ng-clip": "asafdav/ng-clip"
   },
   "dependencies": {
     "underscore": "~1.6.0",
