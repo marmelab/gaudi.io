@@ -102,23 +102,8 @@ footer .share {
 }
 
 #demo {
-    width: 80%;
-    height: 500px;
-    margin-left:-40%;
-    left: 50%;;
-}
-
-#demo .modal-dialog {
-    width: 100%;
-}
-
-#demo .modal-body {
-    height: 430px;
-}
-
-#demo iframe {
-    width: 100%;
-    height: 100%;
+    float: none;
+    margin: 0 auto 30px auto;
 }
 
 /**

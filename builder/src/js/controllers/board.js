@@ -12,7 +12,7 @@ require('jointjs/paper');
 require('directives/droppable');
 require('services/selectedComponents');
 
-angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal, $templateCache, selectedComponents, componentFetcher) {
+angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal, $templateCache, $window, selectedComponents, componentFetcher) {
     'use strict';
 
     $templateCache.put('template/modal/backdrop.html', require('angular-bootstrap/template/modal/backdrop.html'));
@@ -108,8 +108,8 @@ angular.module('gaudiBuilder').controller('boardCtrl', function ($scope, $modal,
     $scope.handleDrop = function (component, board, event) {
         var
             droppableDocumentOffset = $(board).offset(),
-            left = (event.x || event.clientX) - droppableDocumentOffset.left - (component.clientWidth / 2),
-            top = (event.y || event.clientY) - droppableDocumentOffset.top - (component.clientHeight / 2),
+            left = (event.x || event.clientX) - droppableDocumentOffset.left - (component.clientWidth / 2) + $window.pageXOffset,
+            top = (event.y || event.clientY) - droppableDocumentOffset.top - (component.clientHeight / 2) + $window.pageYOffset,
             type = component.attributes['data-type'].value,
             name = selectedComponents.getElementName(type),
             componentInstance = allComponents[type],
