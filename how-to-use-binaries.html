@@ -1,0 +1,39 @@
+---
+layout: default
+title: "How-to use binaries in containers with gaudi"
+description: "Examples of how to use docker to run container like npm, bower or compass"
+body: how-to-bonary
+---
+
+<div class="container page">
+
+    <h1>HOW TO: Use gaudi Binaries</h1>
+
+    <p>
+        In lots of project, you need to execute task like <code>grunt</code>, <code>composer</code> or <code>bower</code>.
+    </p>
+    <p>
+        These binaries can't be included in container like <code>apache</code> or <code>php</code> because they not really rely on them.
+    </p>
+    <p>
+        gaudi provides a type of components called <code>binary</code> that are simple executable started in the current container.
+    </p>
+
+    <h2>Define binaries in configuration</h2>
+
+    <p>
+        Each binaries should be defined in a <code>binary</code> section:
+        <script src="https://gist.github.com/manuquentin/16bc16a4e0474b66f81c.js"></script>
+    </p>
+    
+    <p>You can use all <a href="/binaries.html">binaries provided by gaudi</a>.</p>
+
+    <h2>Start a binary</h2>
+
+    <p>To start a binary in the current directory, simple run:</p>
+
+    <script src="https://gist.github.com/manuquentin/8e187d63d884450fef6f.js"></script>
+
+    <p>For example to run <code>bower</code> :</p>
+    <script src="https://gist.github.com/manuquentin/42dda4dd12a924041eae.js"></script>
+</div>

@@ -106,6 +106,20 @@ footer .share {
     margin: 0 auto 30px auto;
 }
 
+pre.line-pre {
+    width: 520px;
+    background: white;
+}
+
+pre.line-pre .c1 {
+    color: #999988;
+    font-style: italic;
+}
+
+pre.line-pre .nv {
+    color: teal;
+}
+
 /**
 * Pages
 */
