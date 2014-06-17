@@ -10,19 +10,19 @@ body: how-to-bonary
     <h1>HOW TO: Use gaudi Binaries</h1>
 
     <p>
-        In lots of project, you need to execute task like <code>grunt</code>, <code>composer</code> or <code>bower</code>.
+        In many projects, you need to execute tasks like <code>grunt</code>, <code>composer</code> or <code>bower</code>.
     </p>
     <p>
-        These binaries can't be included in container like <code>apache</code> or <code>php</code> because they not really rely on them.
+        These binaries can't be included in containers like <code>apache</code> or <code>php</code> because they do not really rely on them.
     </p>
     <p>
-        gaudi provides a type of components called <code>binary</code> that are simple executable started in the current container.
+        gaudi provides a type of component called <code>binary</code>. Binaries are tools that will be executed in the current directory via a container.
     </p>
 
     <h2>Define binaries in configuration</h2>
 
     <p>
-        Each binaries should be defined in a <code>binary</code> section:
+        Each binary should be defined in a <code>binary</code> section:
         <script src="https://gist.github.com/manuquentin/16bc16a4e0474b66f81c.js"></script>
     </p>
     
@@ -30,10 +30,10 @@ body: how-to-bonary
 
     <h2>Start a binary</h2>
 
-    <p>To start a binary in the current directory, simple run:</p>
+    <p>To start a binary in the current directory, simply run:</p>
 
     <script src="https://gist.github.com/manuquentin/8e187d63d884450fef6f.js"></script>
 
-    <p>For example to run <code>bower</code> :</p>
+    <p>For example, to run <code>bower</code> :</p>
     <script src="https://gist.github.com/manuquentin/42dda4dd12a924041eae.js"></script>
 </div>
