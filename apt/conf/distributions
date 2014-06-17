@@ -1,7 +1,7 @@
 Origin: gaudi.io
 Label: apt repository
 Codename: precise
-Version: 0.2.0
+Version: 0.2.1
 Architectures: amd64 i386 source
 Components: main non-free contrib
 Description: gaudi debian package repository
