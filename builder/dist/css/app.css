@@ -175,6 +175,7 @@ form .error {
     box-shadow: none;
     -webkit-box-shadow:none;
     margin-left: 0;
+    margin-right: 0;
     height: 400px;
     overflow-y: scroll;
 }
